@@ -15,8 +15,9 @@ class Driver(models.Model):
     password = models.CharField(max_length=255)
     license_number = models.CharField(max_length=50, unique=True)
     registration_date = models.DateTimeField(auto_now_add=True)
-    status = models.BooleanField(default=True)
+    status = models.CharField(max_length=20, default='available')
     availability_status = models.BooleanField(default=True)
+    fleet_owner = models.ForeignKey('FleetOwner', on_delete=models.CASCADE, null=True, blank=True)
 
 class FleetOwner(models.Model):
     email = models.EmailField(unique=True)
@@ -25,4 +26,3 @@ class FleetOwner(models.Model):
     password = models.CharField(max_length=255)
     company_name = models.CharField(max_length=255)
     registration_date = models.DateTimeField(auto_now_add=True)
-    status = models.BooleanField(default=True)

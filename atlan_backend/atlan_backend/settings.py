@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'vehicle_type',
+    'fleet_owner',
 ]
 
 MIDDLEWARE = [

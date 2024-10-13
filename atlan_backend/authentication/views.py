@@ -1,16 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import make_password, check_password
+from django.db import transaction
 
 from .models import User, Driver, FleetOwner
 from .serializers import RegisterSerializer, LoginSerializer
 
-from utils.helpers import format_response 
+from utils.helpers import format_response
 from utils.exceptions import BadRequest, Unauthorized
+
 
 class RegisterView(APIView):
     
     @format_response
+    @transaction.atomic
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         
@@ -63,9 +66,11 @@ class RegisterView(APIView):
             'user_id': user.id
         }
 
+
 class LoginView(APIView):
     
     @format_response
+    @transaction.atomic
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
