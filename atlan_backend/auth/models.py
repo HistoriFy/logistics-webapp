@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 class User(models.Model):
     email = models.EmailField(unique=True)
