@@ -15,7 +15,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         
         if not serializer.is_valid():
-            raise BadRequest(serializer.errors)
+            raise BadRequest(detail=serializer.errors)
 
         user_type = serializer.validated_data['user_type']
         email = serializer.validated_data['email']
@@ -52,7 +52,7 @@ class RegisterView(APIView):
             )
             
         else:
-            raise BadRequest("Invalid user type.")
+            raise BadRequest(detail="Invalid user type")
 
         refresh = RefreshToken.for_user(user)
 
@@ -69,7 +69,7 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
-            raise BadRequest(serializer.errors)
+            raise BadRequest(detail=serializer.errors)
         
         user_type = serializer.validated_data['user_type']
         email = serializer.validated_data['email']
@@ -85,7 +85,7 @@ class LoginView(APIView):
             user = FleetOwner.objects.filter(email=email).first()
             
         else:
-            raise BadRequest("Invalid user type.")
+            raise BadRequest(detail="Invalid user type")
 
         if user and check_password(password, user.password):
             refresh = RefreshToken.for_user(user)
@@ -97,4 +97,4 @@ class LoginView(APIView):
             }
             
         else:
-            raise Unauthorized("Invalid credentials.")
+            raise Unauthorized(detail="Invalid credentials")
