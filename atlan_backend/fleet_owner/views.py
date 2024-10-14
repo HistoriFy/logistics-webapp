@@ -1,6 +1,5 @@
 from django.db import transaction
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 
 from .models import Vehicle
 from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSerializer

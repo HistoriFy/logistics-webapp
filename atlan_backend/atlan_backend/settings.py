@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'authentication',
     'vehicle_type',
     'fleet_owner',
+    'pricing_model',
 ]
 
 MIDDLEWARE = [
