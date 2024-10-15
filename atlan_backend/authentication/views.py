@@ -59,12 +59,12 @@ class RegisterView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        return {
+        return ({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'message': 'Registration successful',
             'user_id': user.id
-        }
+        }, 201)
 
 
 class LoginView(APIView):
@@ -95,11 +95,11 @@ class LoginView(APIView):
         if user and check_password(password, user.password):
             refresh = RefreshToken.for_user(user)
             
-            return {
+            return ({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'message': 'Login successful'
-            }
+            }, 200)
             
         else:
             raise Unauthorized("Invalid credentials.")

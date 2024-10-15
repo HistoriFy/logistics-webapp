@@ -1,6 +1,21 @@
 from rest_framework import serializers
-from .models import Booking
+
+from .models import Booking, Location
 from vehicle_type.models import VehicleType
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+class BookingSerializer(serializers.ModelSerializer):
+    pickup_location = LocationSerializer()
+    dropoff_location = LocationSerializer()
+
+    class Meta:
+        model = Booking
+        fields = '__all__'
 
 class PlacePredictionSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)

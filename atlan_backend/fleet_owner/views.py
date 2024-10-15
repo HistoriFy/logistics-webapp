@@ -33,7 +33,7 @@ class AddDriverView(APIView):
             )
             driver.save()
 
-            return {'message': 'Driver added successfully.'}
+            return ({'message': 'Driver added successfully.'}, 201)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
@@ -66,7 +66,7 @@ class AddVehicleView(APIView):
             )
             vehicle.save()
 
-            return {'message': 'Vehicle added successfully.'}
+            return ({'message': 'Vehicle added successfully.'}, 201)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
@@ -96,7 +96,7 @@ class AssignVehicleView(APIView):
             vehicle.driver = driver
             vehicle.save()
 
-            return {'message': 'Vehicle assigned to driver successfully.'}
+            return ({'message': 'Vehicle assigned to driver successfully.'}, 200)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
@@ -126,7 +126,7 @@ class ViewDriversView(APIView):
                 for driver in drivers
             ]
 
-            return {'drivers': driver_list}
+            return ({'drivers': driver_list}, 200)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
@@ -158,7 +158,7 @@ class ViewVehiclesView(APIView):
                 for vehicle in vehicles
             ]
 
-            return {'vehicles': vehicle_list}
+            return ({'vehicles': vehicle_list}, 200)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')

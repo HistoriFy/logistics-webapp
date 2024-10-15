@@ -25,7 +25,7 @@ class PlacePredictionView(APIView):
             place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
             try:
                 predictions = place_repository.get_places(query)
-                return {'predictions': predictions}
+                return ({'predictions': predictions}, 200)
             except Exception as e:
                 raise BadRequest(str(e))
         else:
@@ -87,13 +87,13 @@ class PriceEstimationView(APIView):
                         'currency': 'INR'
                     })
 
-                return {
+                return ({
                     'origin_place_type': origin_place_type,
                     'destination_place_type': destination_place_type,
                     'distance': round(distance_in_km, 2),
                     'estimated_duration_seconds': estimated_duration_seconds,
                     'price_estimations': price_estimations
-                }
+                }, 200)
 
             except Exception as e:
                 raise BadRequest(str(e))
@@ -173,7 +173,7 @@ class BookingCreateView(APIView):
                 'estimated_duration': estimated_duration_seconds,
                 'status': booking.status
             }
-            return response_data
+            return (response_data, 201)
 
         else:
             raise BadRequest(str(serializer.errors))
