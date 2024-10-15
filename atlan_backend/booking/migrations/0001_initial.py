@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('scheduled_time', models.DateTimeField(blank=True, null=True)),
                 ('pickup_time', models.DateTimeField(blank=True, null=True)),
                 ('dropoff_time', models.DateTimeField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('on_trip', 'On Trip'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='pending', max_length=20)),
+                ('status', models.CharField(choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('on_trip', 'On Trip'), ('completed', 'Completed'), ('cancelled', 'Cancelled'), ('expired', 'Expired')], default='pending', max_length=20)),
                 ('estimated_cost', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('actual_cost', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
                 ('distance', models.FloatField()),

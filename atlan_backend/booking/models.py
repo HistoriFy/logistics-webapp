@@ -28,6 +28,7 @@ class Booking(models.Model):
         ('on_trip', 'On Trip'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
+        ('expired', 'Expired'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
