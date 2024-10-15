@@ -3,13 +3,13 @@ import json
 from traceback import print_exc
 from typing import Any, Dict, Optional
 from functools import wraps
-from django.conf import settings
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from authentication.models import User, Driver, FleetOwner
 from utils.exceptions import BadRequest
 
 
@@ -17,25 +17,52 @@ from utils.exceptions import BadRequest
 ---DECORATOR---
 Used to validate the token in the request headers
 '''
-def validate_token(func):
-    @wraps(func)
-    def wrapper_func(request, *args, **kwargs):
-        try:
-            jwt_authenticator = JWTAuthentication()
-            
+def validate_token(allowed_roles=None):
+    if allowed_roles is None:
+        allowed_roles = ['User', 'Driver', 'FleetOwner']  # Default: allow all roles
+    
+    def decorator(func):
+        @wraps(func)
+        def wrapper_func(request, *args, **kwargs):
             try:
-                validated_token = jwt_authenticator.get_validated_token(request.headers.get('Authorization').split(' ')[1])
-                user = jwt_authenticator.get_user(validated_token)
+                jwt_authenticator = JWTAuthentication()
+                
+                try:
+                    token = request.headers.get('Authorization').split(' ')[1]
+                    validated_token = jwt_authenticator.get_validated_token(token)
+                    user = jwt_authenticator.get_user(validated_token)
+                except Exception as e:
+                    return response_obj(success=False, message='Invalid or expired token', status_code=status.HTTP_401_UNAUTHORIZED)
+
+                request.user = user
+
+                # Role-based access control
+                if 'User' in allowed_roles and User.objects.filter(id=user.id).exists():
+                    return func(request, *args, **kwargs)
+                if 'Driver' in allowed_roles and Driver.objects.filter(id=user.id).exists():
+                    return func(request, *args, **kwargs)
+                if 'FleetOwner' in allowed_roles and FleetOwner.objects.filter(id=user.id).exists():
+                    return func(request, *args, **kwargs)
+
+                # If none of the allowed roles matched, return access denied
+                return response_obj(success=False, message='Access denied: Unauthorized user group', status_code=status.HTTP_403_FORBIDDEN)
+
             except Exception as e:
-                return response_obj(success=False, message='Invalid or expired token', status_code=status.HTTP_401_UNAUTHORIZED)
-            
-            request.user = user
-            
-            return func(request, *args, **kwargs)
-        except Exception as e:
-            return response_obj(success=False, message='An error occurred', status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, error=e)
-        
-    return wrapper_func
+                return response_obj(success=False, message='An error occurred', status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, error=e)
+
+        return wrapper_func
+    return decorator
+
+def response_obj(success=True, message='', status_code=200, data=None, error=''):
+    data = {
+        "success": success,
+        "message": message,
+        "data": data if data else {}
+    }
+    if error:
+        data['error'] = str(error)
+    
+    return Response(data, status=status_code)
 
        
 def response_obj(success=True, message='', status_code=200, data={}, error=''):

@@ -13,7 +13,7 @@ from utils.helpers import validate_token, format_response
 
 class AddDriverView(APIView):
 
-    @validate_token
+    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -43,7 +43,7 @@ class AddDriverView(APIView):
 
 class AddVehicleView(APIView):
 
-    @validate_token
+    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -76,7 +76,7 @@ class AddVehicleView(APIView):
 
 class AssignVehicleView(APIView):
 
-    @validate_token
+    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -106,7 +106,7 @@ class AssignVehicleView(APIView):
 
 class ViewDriversView(APIView):
 
-    @validate_token
+    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     def get(self, request):
         try:
@@ -136,7 +136,7 @@ class ViewDriversView(APIView):
 
 class ViewVehiclesView(APIView):
 
-    @validate_token
+    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     def get(self, request):
         try:
