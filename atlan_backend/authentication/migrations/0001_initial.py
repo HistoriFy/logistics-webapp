@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 ('password', models.CharField(max_length=255)),
                 ('license_number', models.CharField(max_length=50, unique=True)),
                 ('registration_date', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(default='available', max_length=20)),
+                ('status', models.CharField(choices=[('available', 'Available'), ('unavailable', 'Unavailable'), ('on_trip', 'On Trip')], default='available', max_length=20)),
                 ('availability_status', models.BooleanField(default=True)),
                 ('fleet_owner', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='authentication.fleetowner')),
             ],
