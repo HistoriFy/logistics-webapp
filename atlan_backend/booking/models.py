@@ -1,8 +1,10 @@
 from django.db import models
+from django.conf import settings
+from django.apps import apps
 
-from authentication.models import User, Driver
 from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel
+import random
 
 class Location(models.Model):
     PICKUP = 'pickup'
@@ -21,8 +23,6 @@ class Location(models.Model):
     def __str__(self):
         return f"{self.place_name} ({self.address})"
 
-import random
-
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -33,8 +33,8 @@ class Booking(models.Model):
         ('expired', 'Expired'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    driver = models.ForeignKey('authentication.Driver', on_delete=models.SET_NULL, null=True, blank=True)
     vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE)
     pickup_location = models.ForeignKey(Location, related_name='pickup_bookings', on_delete=models.CASCADE)
     dropoff_location = models.ForeignKey(Location, related_name='dropoff_bookings', on_delete=models.CASCADE)
@@ -56,7 +56,7 @@ class Booking(models.Model):
     def __str__(self):
         return f"Booking {self.id} by {self.user}"
 
-    #generate and assign OTP
+    # Generate and assign OTP
     def generate_otp(self):
         self.otp = str(random.randint(100000, 999999))
         self.save()

@@ -1,6 +1,5 @@
 from django.db import models
-
-from booking.models import Booking
+from django.apps import apps
 
 class User(models.Model):
     email = models.EmailField(unique=True)
@@ -16,7 +15,7 @@ class Driver(models.Model):
         ('unavailable', 'Unavailable'),
         ('on_trip', 'On Trip')
     ]
-    
+
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=15, unique=True)
@@ -26,7 +25,7 @@ class Driver(models.Model):
     status = models.CharField(max_length=20, default='available', choices=DRIVER_STATUS_CHOICES)
     availability_status = models.BooleanField(default=True)
     fleet_owner = models.ForeignKey('FleetOwner', on_delete=models.CASCADE, null=True, blank=True)
-    available_bookings = models.ManyToManyField(Booking, related_name='available_drivers', blank=True)
+    available_bookings = models.ManyToManyField('booking.Booking', related_name='available_drivers', blank=True)
     total_rides = models.PositiveIntegerField(default=0)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
 
