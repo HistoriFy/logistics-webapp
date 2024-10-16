@@ -1,6 +1,6 @@
-# API Documentation for Travio Project
+# API Documentation for the Project
 
-This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the Travio system for booking rides, managing vehicles, and handling driver assignments.
+This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the system for booking rides, managing vehicles, and handling driver assignments.
 
 ---
 
@@ -404,4 +404,4 @@ This API documentation provides an overview of the various endpoints, request fo
 | 404        | Not Found                         | The requested resource could not be found.           |
 | 500        | Internal Server Error             | An unexpected error occurred on the server.          |
 
-This concludes the API documentation for the Travio project. For further questions or clarifications, please contact the support team or refer to the project repository.
+This concludes the API documentation for the project. For further questions or clarifications, please contact the support team or refer to the project repository.
