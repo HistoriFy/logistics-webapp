@@ -2,7 +2,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
-
+from channels.middleware import BaseMiddleware
 from authentication.models import User
 
 @database_sync_to_async
@@ -12,25 +12,30 @@ def get_user(token_key):
         user_id = payload['user_id']
         user = User.objects.get(id=user_id)
         return user
-    except Exception:
+    except (jwt.DecodeError, jwt.ExpiredSignatureError, User.DoesNotExist):
+        return AnonymousUser()
+    except Exception as e:
+        print(f"Unexpected error in get_user: {str(e)}")
         return AnonymousUser()
 
-class JWTAuthMiddleware:
-    def __init__(self, inner):
-        self.inner = inner
+class JWTAuthMiddleware(BaseMiddleware):
+    async def __call__(self, scope, receive, send):
+        try:
+            # Extract query parameters
+            query_string = scope.get('query_string', b'').decode()
+            params = dict(x.split('=') for x in query_string.split('&') if x)
+            token = params.get('token')
 
-    def __call__(self, scope):
-        return JWTAuthMiddlewareInstance(scope, self)
+            if token:
+                # Authenticate user
+                scope['user'] = await get_user(token)
+            else:
+                scope['user'] = AnonymousUser()
 
-class JWTAuthMiddlewareInstance:
-    def __init__(self, scope, middleware):
-        self.scope = scope
-        self.inner = middleware.inner
-
-    async def __call__(self, receive, send):
-        query_string = self.scope['query_string'].decode()
-        params = dict(x.split('=') for x in query_string.split('&') if x)
-        token = params.get('token', None)
-        self.scope['user'] = await get_user(token)
-        inner = self.inner(self.scope)
-        return await inner(receive, send)
+            # Call the inner application
+            return await super().__call__(scope, receive, send)
+        
+        except Exception as e:
+            print(f"Error in middleware: {str(e)}")
+            scope['user'] = AnonymousUser()
+            return await super().__call__(scope, receive, send)

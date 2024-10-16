@@ -397,6 +397,6 @@ Content-Type: application/json
 ## Changes Noted
 
 - **Currency Updated to INR:** The currency in the `price_estimations` and booking responses has been updated to `INR`.
-- **API Key Retrieval:** The Google API Key is retrieved from `Settings.GOOGLE_API_KEY` instead of a hardcoded string.
+- **API Key Retrieval:** The Google API Key is retrieved from `settings.GOOGLE_API_KEY` instead of a hardcoded string.
 - **Decorators and Helpers:** Custom decorators and helpers are used from `utils.helpers`, and exceptions from `utils.exceptions`.
 - **Models Imported Correctly:** Models are imported from their respective modules, e.g., `pricing_model.models` instead of `pricing.models`.

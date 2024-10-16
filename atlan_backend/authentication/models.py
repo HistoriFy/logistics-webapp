@@ -1,5 +1,4 @@
 from django.db import models
-from django.apps import apps
 
 class User(models.Model):
     email = models.EmailField(unique=True)

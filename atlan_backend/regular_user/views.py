@@ -1,9 +1,11 @@
 from django.db import transaction
-from django.conf import Settings
+from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
 
-from utils.helpers import validate_token, format_response
+from utils.custom_jwt_auth import CustomJWTAuthentication, IsRegularUser
+
+from utils.helpers import format_response
 from utils.exceptions import BadRequest, Unauthorized
 from utils.google_endpoints import PlaceRepository
 
@@ -13,8 +15,9 @@ from booking.serializers import BookingSerializer
 from .serializers import BookingUserCancelSerializer, UserFeedbackSerializer
 
 class UserBookingListView(APIView):
-
-    @validate_token(allowed_roles=['User'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+    
     @format_response
     def get(self, request):
         user = request.user
@@ -29,8 +32,9 @@ class UserBookingListView(APIView):
         return (response_data, 200)
 
 class UserCancelBookingView(APIView):
-
-    @validate_token(allowed_roles=['User'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+    
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -60,13 +64,14 @@ class UserCancelBookingView(APIView):
             raise BadRequest('Booking does not exist.')
 
 class UserCompleteRideView(APIView):
-
-    @validate_token(allowed_roles=['User'])  # Only users can complete the ride via this view
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+    
     @format_response
     @transaction.atomic
     def post(self, request):
-        user = request.user  # Authenticated user
-        booking_id = request.data.get('booking_id')  # Extract booking_id from request body
+        user = request.user
+        booking_id = request.data.get('booking_id')
 
         if not booking_id:
             raise BadRequest('Booking ID is required.')
@@ -91,7 +96,7 @@ class UserCompleteRideView(APIView):
             if not current_latitude or not current_longitude:
                 raise BadRequest('Driver location is not available.')
 
-            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
             distance_value, _ = place_repository.get_distance_and_time(
                 origin_lat=current_latitude,
                 origin_lng=current_longitude,
@@ -112,8 +117,9 @@ class UserCompleteRideView(APIView):
             raise BadRequest('Booking does not exist.')
 
 class UserFeedbackView(APIView):
-
-    @validate_token(allowed_roles=['User'])  # Only users can provide feedback
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+    
     @format_response
     @transaction.atomic
     def post(self, request):

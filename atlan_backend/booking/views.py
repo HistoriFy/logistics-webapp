@@ -1,4 +1,4 @@
-from django.conf import Settings
+from django.conf import settings
 
 from rest_framework.views import APIView
 from decimal import Decimal
@@ -10,19 +10,22 @@ from .models import Booking, Location
 from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel, Region
 
+from utils.custom_jwt_auth import CustomJWTAuthentication, IsRegularUser
+
 from utils.helpers import validate_token, format_response
 from utils.exceptions import BadRequest
 from utils.google_endpoints import PlaceRepository
 
 class PlacePredictionView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
     
-    @validate_token(allowed_roles=['User'])
     @format_response
     def get(self, request):
         serializer = PlacePredictionSerializer(data=request.query_params)
         if serializer.is_valid():
             query = serializer.validated_data['query']
-            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
             try:
                 predictions = place_repository.get_places(query)
                 return ({'predictions': predictions}, 200)
@@ -31,9 +34,10 @@ class PlacePredictionView(APIView):
         else:
             raise BadRequest(serializer.errors)
 
-class PriceEstimationView(APIView):
+class PriceEstimationView(APIView):  
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
     
-    @validate_token(allowed_roles=['User'])
     @format_response
     def post(self, request):
         serializer = PriceEstimationSerializer(data=request.data)
@@ -42,7 +46,7 @@ class PriceEstimationView(APIView):
             destination_place_id = serializer.validated_data['destination_place_id']
             place_type_input = serializer.validated_data.get('place_type')
 
-            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
 
             try:
                 origin_lat, origin_lng, origin_place_type = place_repository.get_lat_lng_and_type_from_place_id(origin_place_id)
@@ -82,6 +86,7 @@ class PriceEstimationView(APIView):
                     estimated_cost *= pricing_model.surge_multiplier
 
                     price_estimations.append({
+                        'vehicle_type_id': vehicle_type.vehicle_type_id,
                         'vehicle_type': vehicle_type.type_name,
                         'estimated_cost': float(round(estimated_cost, 2)),
                         'currency': 'INR'
@@ -102,8 +107,9 @@ class PriceEstimationView(APIView):
             raise BadRequest(serializer.errors)
 
 class BookingCreateView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
     
-    @validate_token(allowed_roles=['User'])
     @format_response
     def post(self, request):
         serializer = BookingCreateSerializer(data=request.data)
@@ -126,7 +132,7 @@ class BookingCreateView(APIView):
                 location_type='dropoff'
             )
 
-            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
 
             try:
                 distance_value, estimated_duration_seconds = place_repository.get_distance_and_time(

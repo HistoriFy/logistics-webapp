@@ -32,7 +32,10 @@ GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# DEBUG = False
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -144,14 +147,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Channel layer definitions
 
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('localhost', 6379)],
+#         },
+#     },
+# }
+
+# testing channel definitions
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('localhost', 6379)],
-        },
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
     },
 }
+
 
 # Celery configuration
 
@@ -161,12 +172,5 @@ celery_app.autodiscover_tasks()
 
 #JWT configuration
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': os.getenv('SECRET_KEY'),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
+
+ACCESS_TOKEN_LIFETIME = timedelta(days=1)

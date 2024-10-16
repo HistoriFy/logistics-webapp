@@ -1,10 +1,14 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth.models import AnonymousUser
+
 class DriverBookingConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         driver = self.scope['user']
-        if driver.is_anonymous:
+        if isinstance(driver, AnonymousUser):
             await self.close()
         else:
             self.driver = driver

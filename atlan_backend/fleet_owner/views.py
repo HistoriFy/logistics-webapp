@@ -7,13 +7,16 @@ from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSeria
 from authentication.models import Driver, FleetOwner
 from vehicle_type.models import VehicleType
 
+from utils.custom_jwt_auth import CustomJWTAuthentication, IsFleetOwner
+
 from utils.exceptions import Unauthorized, BadRequest
-from utils.helpers import validate_token, format_response
+from utils.helpers import format_response
 
 
 class AddDriverView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
 
-    @validate_token(allowed_roles=['FleetOwner'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -42,8 +45,9 @@ class AddDriverView(APIView):
 
 
 class AddVehicleView(APIView):
-
-    @validate_token(allowed_roles=['FleetOwner'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+    
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -75,8 +79,9 @@ class AddVehicleView(APIView):
 
 
 class AssignVehicleView(APIView):
-
-    @validate_token(allowed_roles=['FleetOwner'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+    
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -105,8 +110,9 @@ class AssignVehicleView(APIView):
 
 
 class ViewDriversView(APIView):
-
-    @validate_token(allowed_roles=['FleetOwner'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+    
     @format_response
     def get(self, request):
         try:
@@ -135,8 +141,9 @@ class ViewDriversView(APIView):
 
 
 class ViewVehiclesView(APIView):
-
-    @validate_token(allowed_roles=['FleetOwner'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+    
     @format_response
     def get(self, request):
         try:

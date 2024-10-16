@@ -14,7 +14,7 @@ To establish a WebSocket connection, a client needs to provide a valid JWT token
 
 ### **WebSocket URL Format**
 
-- **User WebSocket**: `ws://<host>/ws/bookings/`
+- **User WebSocket**: `ws://<host>/ws/regular_user/bookings/`
 - **Driver WebSocket**: `ws://<host>/ws/driver/bookings/`
 - **Driver Available Bookings**: `ws://<host>/ws/driver/available_bookings/`
 
@@ -39,7 +39,7 @@ This WebSocket channel allows regular users to receive real-time updates on thei
 
 1. **Connect to WebSocket**
 
-   - **URL**: `ws://<host>/ws/bookings/`
+   - **URL**: `ws://<host>/ws/regular_user/bookings/`
    - **Method**: `CONNECT`
    - **Headers**:
      - `Authorization`: `Bearer <jwt_access_token>`

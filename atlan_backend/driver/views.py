@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework.views import APIView
 from django.db import transaction
-from django.conf import Settings
+from django.conf import settings
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -9,15 +9,18 @@ from asgiref.sync import async_to_sync
 from authentication.models import Driver
 from booking.models import Booking
 
-from utils.helpers import validate_token, format_response
+from utils.custom_jwt_auth import CustomJWTAuthentication, IsDriver
+
+from utils.helpers import format_response
 from utils.exceptions import BadRequest, Unauthorized
 from utils.google_endpoints import PlaceRepository
 
 from .serializers import BookingActionSerializer, ValidateOTPSerializer, BookingDriverCancelSerializer
 
 class AcceptBookingView(APIView):
-    
-    @validate_token(allowed_roles=['Driver'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -65,8 +68,9 @@ class AcceptBookingView(APIView):
             raise BadRequest('Booking does not exist.')
 
 class RejectBookingView(APIView):
-    
-    @validate_token(allowed_roles=['Driver'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -87,8 +91,9 @@ class RejectBookingView(APIView):
             raise BadRequest('Booking does not exist.')
 
 class DriverCancelBookingView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
 
-    @validate_token(allowed_roles=['Driver'])  # Only drivers can cancel via this view
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -118,8 +123,9 @@ class DriverCancelBookingView(APIView):
             raise BadRequest('Booking does not exist.')     
 
 class ToggleDriverAvailabilityView(APIView):
-    
-    @validate_token(allowed_roles=['Driver'])
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -140,8 +146,9 @@ class ToggleDriverAvailabilityView(APIView):
         }, 200)
 
 class ValidateOTPView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
 
-    @validate_token(allowed_roles=['Driver'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -172,8 +179,9 @@ class ValidateOTPView(APIView):
             raise BadRequest(serializer.errors)
 
 class DriverCompleteRideView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
 
-    @validate_token(allowed_roles=['Driver'])  # Only drivers can complete the ride via this view
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -200,7 +208,7 @@ class DriverCompleteRideView(APIView):
                 raise BadRequest('Driver location is not available.')
 
             # Use PlacesRepository to calculate the distance between current location and dropoff location
-            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
             distance_value, _ = place_repository.get_distance_and_time(
                 origin_lat=current_latitude,
                 origin_lng=current_longitude,
