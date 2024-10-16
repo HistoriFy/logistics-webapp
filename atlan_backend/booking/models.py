@@ -21,6 +21,8 @@ class Location(models.Model):
     def __str__(self):
         return f"{self.place_name} ({self.address})"
 
+import random
+
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -49,6 +51,12 @@ class Booking(models.Model):
     payment_method = models.CharField(max_length=50)
     user_rating = models.PositiveSmallIntegerField(null=True, blank=True)
     driver_feedback = models.TextField(null=True, blank=True)
+    otp = models.CharField(max_length=6, null=True, blank=True)
 
     def __str__(self):
         return f"Booking {self.id} by {self.user}"
+
+    #generate and assign OTP
+    def generate_otp(self):
+        self.otp = str(random.randint(100000, 999999))
+        self.save()

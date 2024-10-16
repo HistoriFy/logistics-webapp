@@ -28,3 +28,10 @@ class BookingStatusConsumer(AsyncWebsocketConsumer):
     async def booking_status_update(self, event):
         # Send message to WebSocket
         await self.send(text_data=json.dumps(event['message']))
+    
+    async def send_otp_update(self, event):
+        # Send the OTP to the user via WebSocket
+        await self.send(text_data=json.dumps({
+            'otp': event['otp'],
+            'message': 'Your booking has been accepted. Here is your OTP to start the trip.'
+        }))
