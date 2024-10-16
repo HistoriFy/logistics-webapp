@@ -1,8 +1,9 @@
 from django.db import transaction
 from rest_framework.views import APIView
+from django.contrib.auth.hashers import make_password
 
 from .models import Vehicle
-from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSerializer
+from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSerializer, DeassignVehicleSerializer
 
 from authentication.models import Driver, FleetOwner
 from vehicle_type.models import VehicleType
@@ -29,7 +30,7 @@ class AddDriverView(APIView):
                 email=serializer.validated_data['email'],
                 name=serializer.validated_data['name'],
                 phone=serializer.validated_data['phone'],
-                password=serializer.validated_data['password'],
+                password=make_password(serializer.validated_data['password']),
                 license_number=serializer.validated_data['license_number'],
                 fleet_owner=fleet_owner,
                 availability_status=True
@@ -107,6 +108,26 @@ class AssignVehicleView(APIView):
             raise Unauthorized('You are not authorized to perform this action.')
         except Exception as e:
             raise BadRequest(str(e))
+
+class DeassignVehicleView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+    
+    @format_response
+    def post(self, request):
+        serializer = DeassignVehicleSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            vehicle = serializer.validated_data['vehicle']
+            driver = vehicle.driver
+
+            # Deassign the driver from the vehicle
+            vehicle.driver = None
+            vehicle.save()
+
+            return ({'message': f'Driver {driver.id} has been de-assigned from vehicle {vehicle.vehicle_id}'}, 200)
+        else:
+            raise BadRequest(serializer.errors)
 
 
 class ViewDriversView(APIView):

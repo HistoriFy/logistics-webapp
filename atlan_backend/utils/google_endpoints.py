@@ -56,7 +56,7 @@ class PlaceRepository:
                     for sub_place_type in sub_place_type_list['types']:
                         place_types.add(sub_place_type)
                 # pprint(place_types)
-                pprint(data['result']['address_components'])
+                # pprint(data['result']['address_components'])
 
                 # Determine if it's a city, town, or village based on the types
                 if 'sublocality_level_1' in place_types or 'neighborhood' in place_types:

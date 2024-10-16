@@ -65,3 +65,20 @@ class AssignVehicleSerializer(serializers.Serializer):
             raise serializers.ValidationError('Vehicle does not exist.')
         
         return data
+
+class DeassignVehicleSerializer(serializers.Serializer):
+    vehicle_id = serializers.IntegerField()
+
+    def validate(self, data):
+        vehicle_id = data.get('vehicle_id')
+
+        try:
+            vehicle = Vehicle.objects.get(pk=vehicle_id)
+            data['vehicle'] = vehicle
+        except Vehicle.DoesNotExist:
+            raise serializers.ValidationError('Vehicle does not exist.')
+
+        if vehicle.driver is None:
+            raise serializers.ValidationError('Vehicle has no driver assigned.')
+
+        return data

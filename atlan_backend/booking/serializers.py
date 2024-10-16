@@ -27,16 +27,26 @@ class PriceEstimationSerializer(serializers.Serializer):
         required=False
     )
 
+class PlaceLatLongSerializer(serializers.Serializer):
+    place_id = serializers.CharField(max_length=255)
+
+    def validate_place_id(self, value):
+        # Ensure that the place_id is not empty or just whitespace
+        if not value.strip():
+            raise serializers.ValidationError("Place ID cannot be empty.")
+        return value
+
+
 class BookingCreateSerializer(serializers.Serializer):
     vehicle_type_id = serializers.IntegerField()
     pickup_address = serializers.CharField(max_length=255)
     pickup_latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
     pickup_longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
-    pickup_place_name = serializers.CharField(max_length=255)
+    pickup_place_name = serializers.CharField(max_length=255, required=False)
     dropoff_address = serializers.CharField(max_length=255)
     dropoff_latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
     dropoff_longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
-    dropoff_place_name = serializers.CharField(max_length=255)
+    dropoff_place_name = serializers.CharField(max_length=255, required=False)
     scheduled_time = serializers.DateTimeField(required=False)
     payment_method = serializers.CharField(max_length=50)
 

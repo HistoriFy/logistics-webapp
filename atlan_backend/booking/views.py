@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from decimal import Decimal
 from datetime import timedelta
 
-from .serializers import BookingCreateSerializer, PlacePredictionSerializer, PriceEstimationSerializer
+from .serializers import BookingCreateSerializer, PlacePredictionSerializer, PriceEstimationSerializer, PlaceLatLongSerializer
 from .models import Booking, Location
 
 from vehicle_type.models import VehicleType
@@ -12,7 +12,7 @@ from pricing_model.models import PricingModel, Region
 
 from utils.custom_jwt_auth import CustomJWTAuthentication, IsRegularUser
 
-from utils.helpers import validate_token, format_response
+from utils.helpers import format_response
 from utils.exceptions import BadRequest
 from utils.google_endpoints import PlaceRepository
 
@@ -29,6 +29,32 @@ class PlacePredictionView(APIView):
             try:
                 predictions = place_repository.get_places(query)
                 return ({'predictions': predictions}, 200)
+            except Exception as e:
+                raise BadRequest(str(e))
+        else:
+            raise BadRequest(serializer.errors)
+
+
+class PlaceLatLongView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+
+    @format_response
+    def post(self, request):
+        serializer = PlaceLatLongSerializer(data=request.data)
+        if serializer.is_valid():
+            place_id = serializer.validated_data['place_id']
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
+
+            try:
+                lat, lng, place_type = place_repository.get_lat_lng_and_type_from_place_id(place_id)
+
+                return ({
+                    'latitude': lat,
+                    'longitude': lng,
+                    'place_type': place_type
+                }, 200)
+                
             except Exception as e:
                 raise BadRequest(str(e))
         else:
@@ -93,7 +119,13 @@ class PriceEstimationView(APIView):
                     })
 
                 return ({
+                    'origin_place_id': origin_place_id,
                     'origin_place_type': origin_place_type,
+                    'origin_latitude': origin_lat,
+                    'origin_longitude': origin_lng,
+                    'destination_place_id': destination_place_id,
+                    'destination_latitude': destination_lat,
+                    'destination_longitude': destination_lng,
                     'destination_place_type': destination_place_type,
                     'distance': round(distance_in_km, 2),
                     'estimated_duration_seconds': estimated_duration_seconds,
