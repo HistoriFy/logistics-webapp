@@ -42,6 +42,7 @@ DEBUG = True
 
 INSTALLED_APPS = [
     'channels',
+    'after_response',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -165,6 +166,10 @@ CHANNEL_LAYERS = {
 
 
 # Celery configuration
+
+#temp settings for testing
+CELERY_TASK_ALWAYS_EAGER = True 
+CELERY_TASK_EAGER_PROPAGATES = True 
 
 celery_app = Celery('atlan_backend')
 celery_app.config_from_object('django.conf:settings', namespace='CELERY')

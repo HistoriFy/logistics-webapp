@@ -1,11 +1,10 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
 class DriverBookingConsumer(AsyncWebsocketConsumer):
+    close_timeout = 600
+
     async def connect(self):
         driver = self.scope['user']
         if isinstance(driver, AnonymousUser):
@@ -33,10 +32,16 @@ class DriverBookingConsumer(AsyncWebsocketConsumer):
         # Send booking update message to WebSocket
         await self.send(text_data=json.dumps(event['message']))
         
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth.models import AnonymousUser
+
 class DriverAvailableBookingsConsumer(AsyncWebsocketConsumer):
+    close_timeout = 600
+
     async def connect(self):
         driver = self.scope['user']
-        if driver.is_anonymous:
+        if isinstance(driver, AnonymousUser):
             await self.close()
         else:
             self.driver = driver

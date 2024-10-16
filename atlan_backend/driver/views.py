@@ -45,7 +45,7 @@ class AcceptBookingView(APIView):
             booking.status = 'accepted'
             booking.save()
             
-            driver.availability_status = 'on_trip'
+            driver.status = 'on_trip'
             driver.save()
             
             booking.generate_otp()
@@ -57,10 +57,28 @@ class AcceptBookingView(APIView):
                 {
                     'type': 'send_otp_update',
                     'otp': booking.otp,
+                    'booking_id': booking.id
+                }
+            )
+            
+            #Update the driver's available bookings
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"driver_{driver.id}_available_bookings",
+                {
+                    'type': 'available_booking_update',
+                    'message': {
+                        'status': 'accepted',
+                        'booking_id': booking.id,
+                        'pickup_location': booking.pickup_location.address,
+                    }
                 }
             )
 
-            Driver.objects.filter(available_bookings=booking).update(available_bookings=None)
+            # Driver.objects.filter(available_bookings=booking).update(available_bookings=None)
+            
+            for driver in Driver.objects.filter(available_bookings=booking):
+                driver.available_bookings.remove(booking)
 
             return ({'message': 'Booking accepted successfully.'}, 200)
         
@@ -108,14 +126,17 @@ class DriverCancelBookingView(APIView):
         try:
             booking = Booking.objects.select_for_update().get(id=booking_id)
 
-            if booking.status != 'on_trip':
-                raise BadRequest('Only bookings that are in-progress can be cancelled.')
+            if booking.status not in ['accepted', 'on_trip']:
+                raise BadRequest('Only accepted or on-trip bookings can be cancelled.')
 
             if booking.user != driver:
                 raise Unauthorized('You are not authorized to cancel this booking.')
 
             booking.status = 'cancelled'
             booking.save()
+            
+            driver.status = 'available'
+            driver.save()
 
             return ({'message': 'Booking cancelled successfully.'}, 200)
         
@@ -132,10 +153,10 @@ class ToggleDriverAvailabilityView(APIView):
         driver = request.user
 
         # Toggle availability status
-        if driver.availability_status == 'available':
-            driver.availability_status = 'unavailable'
-        elif driver.availability_status == 'unavailable':
-            driver.availability_status = 'available'
+        if driver.availability_status == True:
+            driver.availability_status = False
+        elif driver.availability_status == False:
+            driver.availability_status = True
         else:
             raise BadRequest('Driver is currently on a trip and cannot change availability status.')
 
@@ -170,6 +191,35 @@ class ValidateOTPView(APIView):
                 booking.status = 'on_trip'
                 booking.pickup_time = timezone.now()
                 booking.save()
+                
+                # Send WebSocket update to the user about the trip starting
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{booking.user.id}_bookings",
+                    {
+                        'type': 'booking_status_update',
+                        'message': {
+                            'status': 'on_trip',
+                            'booking_id': booking.id,
+                            'pickup_time': str(booking.pickup_time),
+                            'message': 'OTP Verified. Trip has started.'
+                        }
+                    }
+                )
+                
+                # Send WebSocket update to the driver about the trip starting
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"driver_{booking.driver.id}_available_bookings",
+                    {
+                        'type': 'available_booking_update',
+                        'message': {
+                            'status': 'on_trip',
+                            'booking_id': booking.id,
+                            'pickup_time': str(booking.pickup_time),
+                        }
+                    }
+                )
 
                 return ({'message': 'OTP validated. Booking status updated to on_trip.'}, 200)
             
@@ -223,6 +273,25 @@ class DriverCompleteRideView(APIView):
             booking.status = 'completed'
             booking.dropoff_time = timezone.now()  # Record the dropoff time
             booking.save()
+            
+            #Driver status update
+            driver.status = 'available'
+            driver.total_rides += 1
+            driver.save()
+            
+            # Send WebSocket update to the driver about ride completion
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"driver_{driver.id}_available_bookings",
+                {
+                    'type': 'available_booking_update',
+                    'message': {
+                        'status': 'completed',
+                        'booking_id': booking.id,
+                        'dropoff_time': str(booking.dropoff_time),
+                    }
+                }
+            )
 
             return ({'message': 'Ride completed successfully.'}, 200)
         

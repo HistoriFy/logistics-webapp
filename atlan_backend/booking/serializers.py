@@ -40,18 +40,18 @@ class PlaceLatLongSerializer(serializers.Serializer):
 class BookingCreateSerializer(serializers.Serializer):
     vehicle_type_id = serializers.IntegerField()
     pickup_address = serializers.CharField(max_length=255)
-    pickup_latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
-    pickup_longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+    pickup_latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
+    pickup_longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
     pickup_place_name = serializers.CharField(max_length=255, required=False)
     dropoff_address = serializers.CharField(max_length=255)
-    dropoff_latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
-    dropoff_longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+    dropoff_latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
+    dropoff_longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
     dropoff_place_name = serializers.CharField(max_length=255, required=False)
     scheduled_time = serializers.DateTimeField(required=False)
     payment_method = serializers.CharField(max_length=50)
 
     def validate_vehicle_type_id(self, value):
-        if not VehicleType.objects.filter(id=value).exists():
+        if not VehicleType.objects.filter(vehicle_type_id=value).exists():
             raise serializers.ValidationError("Invalid vehicle type.")
         return value
 

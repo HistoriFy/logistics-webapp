@@ -15,8 +15,8 @@ class Location(models.Model):
     ]
 
     address = models.CharField(max_length=255)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    latitude = models.DecimalField(max_digits=9, decimal_places=7)
+    longitude = models.DecimalField(max_digits=9, decimal_places=7)
     place_name = models.CharField(max_length=255)
     location_type = models.CharField(max_length=10, choices=LOCATION_TYPE_CHOICES)
 
@@ -33,7 +33,7 @@ class Booking(models.Model):
         ('expired', 'Expired'),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey('authentication.User', on_delete=models.CASCADE)
     driver = models.ForeignKey('authentication.Driver', on_delete=models.SET_NULL, null=True, blank=True)
     vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE)
     pickup_location = models.ForeignKey(Location, related_name='pickup_bookings', on_delete=models.CASCADE)

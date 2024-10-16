@@ -48,15 +48,19 @@ class UserCancelBookingView(APIView):
 
         try:
             booking = Booking.objects.select_for_update().get(id=booking_id)
+            driver = booking.driver
 
-            if booking.status != 'on_trip':
-                raise BadRequest('Only bookings that are in-progress can be cancelled.')
+            if booking.status not in ['pending', 'accepted', 'on_trip']:
+                raise BadRequest('Only bookings that are pending, accepted or in-progress can be cancelled.')
 
             if booking.user != user:
                 raise Unauthorized('You are not authorized to cancel this booking.')
 
             booking.status = 'cancelled'
             booking.save()
+            
+            driver.status = 'available'
+            driver.save()
 
             return ({'message': 'Booking cancelled successfully.'}, 200)
         
@@ -110,6 +114,12 @@ class UserCompleteRideView(APIView):
             booking.status = 'completed'
             booking.dropoff_time = timezone.now()
             booking.save()
+            
+            driver.status = 'available'
+            driver.total_rides += 1
+            # driver.current_latitude = None
+            # driver.current_longitude = None
+            driver.save()
 
             return ({'message': 'Ride completed successfully.'}, 200)
         
@@ -143,7 +153,6 @@ class UserFeedbackView(APIView):
             booking.save()
 
             # Update the driver's rating and total rides
-            driver.total_rides += 1
             total_rides = driver.total_rides
             current_avg_rating = driver.rating
 

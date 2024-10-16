@@ -27,6 +27,8 @@ class Driver(models.Model):
     available_bookings = models.ManyToManyField('booking.Booking', related_name='available_drivers', blank=True)
     total_rides = models.PositiveIntegerField(default=0)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
+    current_longitude = models.DecimalField(max_digits=9, decimal_places=7, null=True, blank=True)
+    current_latitude = models.DecimalField(max_digits=9, decimal_places=7, null=True, blank=True)
 
 class FleetOwner(models.Model):
     email = models.EmailField(unique=True)

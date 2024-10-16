@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
+
 from authentication.models import User
 
 @database_sync_to_async

@@ -3,8 +3,12 @@ from time import sleep
 from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
+import asyncio
+import after_response
 
-from .models import Booking, Driver
+from authentication.models import Driver
+from .models import Booking
 from utils.google_endpoints import PlaceRepository
 
 def notify_driver_about_booking(driver, booking):
@@ -26,9 +30,15 @@ def notify_driver_about_booking(driver, booking):
         }
     )
 
-@shared_task
+# @shared_task
+@after_response.enable
 def find_nearby_drivers(booking_id):
-    booking = Booking.objects.get(id=booking_id)
+    # print("Celery task started")
+    try:
+        booking = Booking.objects.get(id=booking_id)
+    except Booking.DoesNotExist:
+        print(f"Booking {booking_id} not found.")
+        return
     
     place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
     search_radius = 1  # Initial radius in km
@@ -36,11 +46,16 @@ def find_nearby_drivers(booking_id):
     max_time = 300  # 5 minutes in seconds
     
     while time_elapsed <= max_time:
-        available_drivers = Driver.objects.filter(availability_status='available')
+        booking = Booking.objects.get(id=booking_id)
+        if booking.status in ['accepted', 'on_trip']:
+            # print(f"Booking {booking.id} already accepted or in progress.")
+            return
+
+        available_drivers = Driver.objects.filter(status='available')
+        found_driver = False
 
         for driver in available_drivers:
             try:
-                # Get distance between the booking's pickup location and the driver's current location
                 distance_value, _ = place_repository.get_distance_and_time(
                     origin_lat=booking.pickup_location.latitude,
                     origin_lng=booking.pickup_location.longitude,
@@ -51,19 +66,69 @@ def find_nearby_drivers(booking_id):
 
                 distance_in_km = distance_value / 1000.0
                 if distance_in_km <= search_radius:
-                    # Add the booking to the driver's available bookings
                     driver.available_bookings.add(booking)
-
-                    # Notify the driver about this booking (use WebSocket, FCM, etc.)
                     notify_driver_about_booking(driver, booking)
+                    
+                    if booking.status in ['accepted', 'on_trip']:
+                        found_driver = True
 
             except Exception as e:
                 print(f"Error fetching distance: {str(e)}")
 
+        if found_driver:
+            pass
+        else:
+            pass
+            # print(f"No available drivers within {search_radius} km for booking {booking.id}.")
+
+        if booking.status in ['accepted', 'on_trip']:
+            break
+        
         search_radius += 1
         sleep(30)
         time_elapsed += 30
+    
+    if booking.status not in ['accepted', 'on_trip']:
+        booking.status = 'expired'
+        booking.save()
+        # print(f"Booking {booking.id} expired after {max_time / 60} minutes.")
+    
 
-    # If no driver accepts the booking within 5 minutes, expire it
-    booking.status = 'expired'
-    booking.save()
+# async def find_nearby_drivers_async(booking_id):
+#     # Wrap synchronous database calls with sync_to_async
+#     booking = await sync_to_async(Booking.objects.get)(id=booking_id)
+#     place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
+    
+#     search_radius = 1  # Initial radius in km
+#     time_elapsed = 0
+#     max_time = 300  # 5 minutes in seconds
+    
+#     while time_elapsed <= max_time:
+#         available_drivers = await sync_to_async(Driver.objects.filter)(status='available')
+
+#         for driver in available_drivers:
+#             try:
+#                 # Use sync_to_async for external API calls if they are synchronous
+#                 distance_value, _ = await sync_to_async(place_repository.get_distance_and_time)(
+#                     origin_lat=booking.pickup_location.latitude,
+#                     origin_lng=booking.pickup_location.longitude,
+#                     destination_lat=driver.current_latitude,
+#                     destination_lng=driver.current_longitude,
+#                     mode='driving'
+#                 )
+
+#                 distance_in_km = distance_value / 1000.0
+#                 if distance_in_km <= search_radius:
+#                     # Update driver and booking relations
+#                     await sync_to_async(driver.available_bookings.add)(booking)
+#                     notify_driver_about_booking(driver, booking)
+#             except Exception as e:
+#                 print(f"Error fetching distance: {str(e)}")
+
+#         search_radius += 1
+#         await asyncio.sleep(30)
+#         time_elapsed += 30
+
+#     # Update booking status asynchronously
+#     booking.status = 'expired'
+#     await sync_to_async(booking.save)()

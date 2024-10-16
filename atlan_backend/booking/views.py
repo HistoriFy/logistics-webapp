@@ -1,11 +1,13 @@
 from django.conf import settings
-
+import asyncio
 from rest_framework.views import APIView
 from decimal import Decimal
 from datetime import timedelta
+import after_response
 
 from .serializers import BookingCreateSerializer, PlacePredictionSerializer, PriceEstimationSerializer, PlaceLatLongSerializer
 from .models import Booking, Location
+from .tasks import find_nearby_drivers
 
 from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel, Region
@@ -147,20 +149,20 @@ class BookingCreateView(APIView):
         serializer = BookingCreateSerializer(data=request.data)
         if serializer.is_valid():
             user = request.user
-            vehicle_type = VehicleType.objects.get(id=serializer.validated_data['vehicle_type_id'])
+            vehicle_type = VehicleType.objects.get(vehicle_type_id=serializer.validated_data['vehicle_type_id'])
 
             pickup_location = Location.objects.create(
                 address=serializer.validated_data['pickup_address'],
                 latitude=serializer.validated_data['pickup_latitude'],
                 longitude=serializer.validated_data['pickup_longitude'],
-                place_name=serializer.validated_data['pickup_place_name'],
+                place_name=serializer.validated_data['pickup_address'],
                 location_type='pickup'
             )
             dropoff_location = Location.objects.create(
                 address=serializer.validated_data['dropoff_address'],
                 latitude=serializer.validated_data['dropoff_latitude'],
                 longitude=serializer.validated_data['dropoff_longitude'],
-                place_name=serializer.validated_data['dropoff_place_name'],
+                place_name=serializer.validated_data['dropoff_address'],
                 location_type='dropoff'
             )
 
@@ -211,7 +213,14 @@ class BookingCreateView(APIView):
                 'estimated_duration': estimated_duration_seconds,
                 'status': booking.status
             }
+            
+            find_nearby_drivers.after_response(booking.id)
+            
             return (response_data, 201)
 
         else:
             raise BadRequest(str(serializer.errors))
+        
+    # @after_response.enable
+    # def start_find_nearby_drivers_task(self, booking_id):
+    #     find_nearby_drivers.delay(booking_id)
