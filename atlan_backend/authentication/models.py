@@ -1,5 +1,7 @@
 from django.db import models
 
+from booking.models import Booking
+
 class User(models.Model):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
@@ -24,6 +26,7 @@ class Driver(models.Model):
     status = models.CharField(max_length=20, default='available', choices=DRIVER_STATUS_CHOICES)
     availability_status = models.BooleanField(default=True)
     fleet_owner = models.ForeignKey('FleetOwner', on_delete=models.CASCADE, null=True, blank=True)
+    available_bookings = models.ManyToManyField(Booking, related_name='available_drivers', blank=True)
 
 class FleetOwner(models.Model):
     email = models.EmailField(unique=True)

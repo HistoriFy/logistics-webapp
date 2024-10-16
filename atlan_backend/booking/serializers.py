@@ -3,7 +3,6 @@ from rest_framework import serializers
 from .models import Booking, Location
 from vehicle_type.models import VehicleType
 
-
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location

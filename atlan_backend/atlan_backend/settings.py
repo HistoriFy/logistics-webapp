@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 
+from celery import Celery
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,7 +47,9 @@ INSTALLED_APPS = [
     'vehicle_type',
     'fleet_owner',
     'pricing_model',
-    'booking'
+    'booking',
+    'regular_user',
+    'driver'
 ]
 
 MIDDLEWARE = [
@@ -142,3 +146,9 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# Celery configuration
+
+celery_app = Celery('atlan_backend')
+celery_app.config_from_object('django.conf:settings', namespace='CELERY')
+celery_app.autodiscover_tasks()
