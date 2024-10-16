@@ -1,6 +1,6 @@
-# API Documentation for the Project
+# **API Documentation for the Project**
 
-This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the system for booking rides, managing vehicles, and handling driver assignments.
+This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the system for booking rides, managing vehicles, handling driver assignments, and more.
 
 ---
 
@@ -391,13 +391,134 @@ This API documentation provides an overview of the various endpoints, request fo
 }
 ```
 
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to perform this action.",
+  "data": {}
+}
+```
+
+---
+
+### **Add Vehicle**
+
+- **Endpoint**: `/api/v1/fleet_owner/add_vehicle/`
+- **Method**: `POST`
+- **Description**: Allows a fleet owner to add a new vehicle.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "vehicle_type_id": 1,
+  "license_plate": "ABC1234",
+  "capacity": 1000,
+  "make": "Toyota
+
+",
+  "model": "Hilux",
+  "year": 2021,
+  "color": "White"
+}
+```
+
+#### Response Example
+
+```json
+{
+  "message": "Vehicle added successfully."
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Invalid vehicle data.",
+  "data": {}
+}
+```
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to perform this action.",
+  "data": {}
+}
+```
+
+---
+
+### **Assign Vehicle to Driver**
+
+- **Endpoint**: `/api/v1/fleet_owner/assign_vehicle/`
+- **Method**: `POST`
+- **Description**: Assigns a vehicle to a driver under the fleet owner.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "driver_id": 1,
+  "vehicle_id": 2
+}
+```
+
+#### Response Example
+
+```json
+{
+  "message": "Vehicle assigned to driver successfully."
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Invalid driver or vehicle.",
+  "data": {}
+}
+```
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "Driver or vehicle does not belong to the fleet owner.",
+  "data": {}
+}
+```
+
 ---
 
 ### **View Drivers**
 
 - **Endpoint**: `/api/v1/fleet_owner/view_drivers/`
 - **Method**: `GET`
-- **Description**: Allows a fleet owner to view all drivers under their management.
+- **Description**: Retrieves a list of all drivers under the fleet owner.
 
 #### Request Headers
 
@@ -421,15 +542,69 @@ This API documentation provides an overview of the various endpoints, request fo
 }
 ```
 
+#### Common Error Responses
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to view this resource.",
+  "data": {}
+}
+```
+
+---
+
+### **View Vehicles**
+
+- **Endpoint**: `/api/v1/fleet_owner/view_vehicles/`
+- **Method**: `GET`
+- **Description**: Retrieves a list of all vehicles under the fleet owner.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+
+#### Response Example
+
+```json
+{
+  "vehicles": [
+    {
+      "vehicle_id": 1,
+      "license_plate": "ABC1234",
+      "vehicle_type": "Truck",
+      "capacity": 1000,
+      "make": "Toyota",
+      "model": "Hilux",
+      "year": 2021,
+      "color": "White",
+      "driver": "John Driver"
+    }
+  ]
+}
+```
+
+#### Common Error Responses
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to view this resource.",
+  "data": {}
+}
+```
+
 ---
 
 ## **Regular User API**
 
 ### **User Booking List**
 
-- **
-
-Endpoint**: `/api/v1/regular_user/bookings/`
+- **Endpoint**: `/api/v1/regular_user/bookings/`
 - **Method**: `GET`
 - **Description**: Retrieves all bookings for the logged-in user.
 
@@ -456,7 +631,7 @@ Endpoint**: `/api/v1/regular_user/bookings/`
 
 ---
 
-## Common Error Codes
+## **Common Error Codes**
 
 | Error Code | Error Message                    | Description                                          |
 |------------|-----------------------------------|------------------------------------------------------|
