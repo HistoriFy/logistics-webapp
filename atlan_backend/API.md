@@ -1,6 +1,6 @@
-# API Documentation for the Project
+# **API Documentation for the Project**
 
-This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the system for booking rides, managing vehicles, and handling driver assignments.
+This API documentation provides an overview of the various endpoints, request formats, headers, sample requests, and common error responses. The API is designed for users, drivers, and fleet owners to interact with the system for booking rides, managing vehicles, handling driver assignments, and more.
 
 ---
 
@@ -149,6 +149,66 @@ This API documentation provides an overview of the various endpoints, request fo
 {
   "success": false,
   "message": "Pricing model not found for the selected vehicle type",
+  "data": {}
+}
+```
+
+---
+
+### **Price Estimation**
+
+- **Endpoint**: `/api/v1/booking/price-estimation/`
+- **Method**: `POST`
+- **Description**: Provides an estimated cost for a ride based on origin and destination locations.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "origin_place_id": "ChIJn1zUlImlZzsRwXNuB1rZBEI",
+  "destination_place_id": "ChIJSxMWDBUdZzsRtmBk9Q4mI0U",
+  "place_type": "city"  // Optional field for region type (city, town, village, etc.)
+}
+```
+
+#### Response Example
+
+```json
+{
+  "origin_place_type": "City",
+  "destination_place_type": "City",
+  "distance": 15.2,
+  "estimated_duration_seconds": 1800,
+  "price_estimations": [
+    {
+      "vehicle_type_id": 1,
+      "vehicle_type": "2 wheeler",
+      "estimated_cost": 150.75,
+      "currency": "INR"
+    },
+    {
+      "vehicle_type_id": 2,
+      "vehicle_type": "3 wheeler",
+      "estimated_cost": 250.25,
+      "currency": "INR"
+    }
+  ]
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Region 'City' not found in the database",
   "data": {}
 }
 ```
@@ -331,13 +391,134 @@ This API documentation provides an overview of the various endpoints, request fo
 }
 ```
 
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to perform this action.",
+  "data": {}
+}
+```
+
+---
+
+### **Add Vehicle**
+
+- **Endpoint**: `/api/v1/fleet_owner/add_vehicle/`
+- **Method**: `POST`
+- **Description**: Allows a fleet owner to add a new vehicle.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "vehicle_type_id": 1,
+  "license_plate": "ABC1234",
+  "capacity": 1000,
+  "make": "Toyota
+
+",
+  "model": "Hilux",
+  "year": 2021,
+  "color": "White"
+}
+```
+
+#### Response Example
+
+```json
+{
+  "message": "Vehicle added successfully."
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Invalid vehicle data.",
+  "data": {}
+}
+```
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to perform this action.",
+  "data": {}
+}
+```
+
+---
+
+### **Assign Vehicle to Driver**
+
+- **Endpoint**: `/api/v1/fleet_owner/assign_vehicle/`
+- **Method**: `POST`
+- **Description**: Assigns a vehicle to a driver under the fleet owner.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "driver_id": 1,
+  "vehicle_id": 2
+}
+```
+
+#### Response Example
+
+```json
+{
+  "message": "Vehicle assigned to driver successfully."
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Invalid driver or vehicle.",
+  "data": {}
+}
+```
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "Driver or vehicle does not belong to the fleet owner.",
+  "data": {}
+}
+```
+
 ---
 
 ### **View Drivers**
 
 - **Endpoint**: `/api/v1/fleet_owner/view_drivers/`
 - **Method**: `GET`
-- **Description**: Allows a fleet owner to view all drivers under their management.
+- **Description**: Retrieves a list of all drivers under the fleet owner.
 
 #### Request Headers
 
@@ -358,6 +539,62 @@ This API documentation provides an overview of the various endpoints, request fo
       "availability_status": "available"
     }
   ]
+}
+```
+
+#### Common Error Responses
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to view this resource.",
+  "data": {}
+}
+```
+
+---
+
+### **View Vehicles**
+
+- **Endpoint**: `/api/v1/fleet_owner/view_vehicles/`
+- **Method**: `GET`
+- **Description**: Retrieves a list of all vehicles under the fleet owner.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+
+#### Response Example
+
+```json
+{
+  "vehicles": [
+    {
+      "vehicle_id": 1,
+      "license_plate": "ABC1234",
+      "vehicle_type": "Truck",
+      "capacity": 1000,
+      "make": "Toyota",
+      "model": "Hilux",
+      "year": 2021,
+      "color": "White",
+      "driver": "John Driver"
+    }
+  ]
+}
+```
+
+#### Common Error Responses
+
+- **403 Unauthorized**
+
+```json
+{
+  "success": false,
+  "message": "You are not authorized to view this resource.",
+  "data": {}
 }
 ```
 
@@ -394,7 +631,7 @@ This API documentation provides an overview of the various endpoints, request fo
 
 ---
 
-## Common Error Codes
+## **Common Error Codes**
 
 | Error Code | Error Message                    | Description                                          |
 |------------|-----------------------------------|------------------------------------------------------|
@@ -403,5 +640,3 @@ This API documentation provides an overview of the various endpoints, request fo
 | 403        | Forbidden                         | The user does not have permission to access this resource. |
 | 404        | Not Found                         | The requested resource could not be found.           |
 | 500        | Internal Server Error             | An unexpected error occurred on the server.          |
-
-This concludes the API documentation for the project. For further questions or clarifications, please contact the support team or refer to the project repository.
