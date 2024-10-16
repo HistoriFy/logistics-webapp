@@ -155,6 +155,66 @@ This API documentation provides an overview of the various endpoints, request fo
 
 ---
 
+### **Price Estimation**
+
+- **Endpoint**: `/api/v1/booking/price-estimation/`
+- **Method**: `POST`
+- **Description**: Provides an estimated cost for a ride based on origin and destination locations.
+
+#### Request Headers
+
+- `Authorization`: `Bearer <jwt_access_token>`
+- `Content-Type`: `application/json`
+
+#### Request Body
+
+```json
+{
+  "origin_place_id": "ChIJn1zUlImlZzsRwXNuB1rZBEI",
+  "destination_place_id": "ChIJSxMWDBUdZzsRtmBk9Q4mI0U",
+  "place_type": "city"  // Optional field for region type (city, town, village, etc.)
+}
+```
+
+#### Response Example
+
+```json
+{
+  "origin_place_type": "City",
+  "destination_place_type": "City",
+  "distance": 15.2,
+  "estimated_duration_seconds": 1800,
+  "price_estimations": [
+    {
+      "vehicle_type_id": 1,
+      "vehicle_type": "2 wheeler",
+      "estimated_cost": 150.75,
+      "currency": "INR"
+    },
+    {
+      "vehicle_type_id": 2,
+      "vehicle_type": "3 wheeler",
+      "estimated_cost": 250.25,
+      "currency": "INR"
+    }
+  ]
+}
+```
+
+#### Common Error Responses
+
+- **400 Bad Request**
+
+```json
+{
+  "success": false,
+  "message": "Region 'City' not found in the database",
+  "data": {}
+}
+```
+
+---
+
 ### **Get Place Predictions**
 
 - **Endpoint**: `/api/v1/booking/place-predictions/`
@@ -367,7 +427,9 @@ This API documentation provides an overview of the various endpoints, request fo
 
 ### **User Booking List**
 
-- **Endpoint**: `/api/v1/regular_user/bookings/`
+- **
+
+Endpoint**: `/api/v1/regular_user/bookings/`
 - **Method**: `GET`
 - **Description**: Retrieves all bookings for the logged-in user.
 
@@ -403,5 +465,3 @@ This API documentation provides an overview of the various endpoints, request fo
 | 403        | Forbidden                         | The user does not have permission to access this resource. |
 | 404        | Not Found                         | The requested resource could not be found.           |
 | 500        | Internal Server Error             | An unexpected error occurred on the server.          |
-
-This concludes the API documentation for the project. For further questions or clarifications, please contact the support team or refer to the project repository.
