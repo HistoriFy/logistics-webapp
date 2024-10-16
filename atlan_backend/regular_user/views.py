@@ -1,8 +1,16 @@
+from django.db import transaction
+from django.conf import Settings
+from django.utils import timezone
 from rest_framework.views import APIView
 
 from utils.helpers import validate_token, format_response
+from utils.exceptions import BadRequest, Unauthorized
+from utils.google_endpoints import PlaceRepository
+
 from booking.models import Booking
 from booking.serializers import BookingSerializer
+
+from .serializers import BookingUserCancelSerializer, UserFeedbackSerializer
 
 class UserBookingListView(APIView):
 
@@ -19,3 +27,125 @@ class UserBookingListView(APIView):
         }
 
         return (response_data, 200)
+
+class UserCancelBookingView(APIView):
+
+    @validate_token(allowed_roles=['User'])
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        user = request.user  
+        serializer = BookingUserCancelSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            raise BadRequest(str(serializer.errors))
+        
+        booking_id = serializer.validated_data['booking_id']
+
+        try:
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+
+            if booking.status != 'on_trip':
+                raise BadRequest('Only bookings that are in-progress can be cancelled.')
+
+            if booking.user != user:
+                raise Unauthorized('You are not authorized to cancel this booking.')
+
+            booking.status = 'cancelled'
+            booking.save()
+
+            return ({'message': 'Booking cancelled successfully.'}, 200)
+        
+        except Booking.DoesNotExist:
+            raise BadRequest('Booking does not exist.')
+
+class UserCompleteRideView(APIView):
+
+    @validate_token(allowed_roles=['User'])  # Only users can complete the ride via this view
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        user = request.user  # Authenticated user
+        booking_id = request.data.get('booking_id')  # Extract booking_id from request body
+
+        if not booking_id:
+            raise BadRequest('Booking ID is required.')
+
+        try:
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+
+            if booking.status != 'on_trip':
+                raise BadRequest('Only trips that are in-progress can be completed.')
+
+            if booking.user != user:
+                raise Unauthorized('You are not authorized to complete this booking.')
+
+            driver = booking.driver
+
+            if not driver:
+                raise BadRequest('No driver associated with this booking.')
+
+            current_latitude = driver.current_latitude
+            current_longitude = driver.current_longitude
+
+            if not current_latitude or not current_longitude:
+                raise BadRequest('Driver location is not available.')
+
+            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            distance_value, _ = place_repository.get_distance_and_time(
+                origin_lat=current_latitude,
+                origin_lng=current_longitude,
+                destination_lat=booking.dropoff_location.latitude,
+                destination_lng=booking.dropoff_location.longitude
+            )
+
+            if distance_value > 50:
+                raise BadRequest('You must be within 50 meters of the dropoff location to complete the ride.')
+
+            booking.status = 'completed'
+            booking.dropoff_time = timezone.now()
+            booking.save()
+
+            return ({'message': 'Ride completed successfully.'}, 200)
+        
+        except Booking.DoesNotExist:
+            raise BadRequest('Booking does not exist.')
+
+class UserFeedbackView(APIView):
+
+    @validate_token(allowed_roles=['User'])  # Only users can provide feedback
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        serializer = UserFeedbackSerializer(data=request.data, context={'request': request})
+        
+        if serializer.is_valid():
+            booking_id = serializer.validated_data['booking_id']
+            rating = serializer.validated_data['rating']
+            feedback = serializer.validated_data.get('feedback', '')
+
+            # Fetch the booking and driver
+            booking = Booking.objects.get(id=booking_id)
+            driver = booking.driver
+
+            if not driver:
+                raise BadRequest('No driver associated with this booking.')
+
+            # Save feedback and rating on the booking
+            booking.user_rating = rating
+            booking.driver_feedback = feedback
+            booking.save()
+
+            # Update the driver's rating and total rides
+            driver.total_rides += 1
+            total_rides = driver.total_rides
+            current_avg_rating = driver.rating
+
+            # Calculate the new average rating
+            new_avg_rating = ((current_avg_rating * (total_rides - 1)) + rating) / total_rides
+            driver.rating = new_avg_rating
+            driver.save()
+
+            return ({'message': 'Feedback and rating submitted successfully.'}, 201)
+        
+        return BadRequest(serializer.errors)

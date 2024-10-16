@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework.views import APIView
 from django.db import transaction
+from django.conf import Settings
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -10,7 +11,9 @@ from booking.models import Booking
 
 from utils.helpers import validate_token, format_response
 from utils.exceptions import BadRequest, Unauthorized
-from .serializers import BookingActionSerializer, ValidateOTPSerializer
+from utils.google_endpoints import PlaceRepository
+
+from .serializers import BookingActionSerializer, ValidateOTPSerializer, BookingDriverCancelSerializer
 
 class AcceptBookingView(APIView):
     
@@ -81,7 +84,38 @@ class RejectBookingView(APIView):
 
             return ({'message': 'Booking rejected successfully.'}, 200)
         except Booking.DoesNotExist:
-            raise BadRequest('Booking does not exist.')      
+            raise BadRequest('Booking does not exist.')
+
+class DriverCancelBookingView(APIView):
+
+    @validate_token(allowed_roles=['Driver'])  # Only drivers can cancel via this view
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        driver = request.user        
+        serializer = BookingDriverCancelSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            raise BadRequest(str(serializer.errors))
+        
+        booking_id = serializer.validated_data['booking_id']
+
+        try:
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+
+            if booking.status != 'on_trip':
+                raise BadRequest('Only bookings that are in-progress can be cancelled.')
+
+            if booking.user != driver:
+                raise Unauthorized('You are not authorized to cancel this booking.')
+
+            booking.status = 'cancelled'
+            booking.save()
+
+            return ({'message': 'Booking cancelled successfully.'}, 200)
+        
+        except Booking.DoesNotExist:
+            raise BadRequest('Booking does not exist.')     
 
 class ToggleDriverAvailabilityView(APIView):
     
@@ -107,7 +141,7 @@ class ToggleDriverAvailabilityView(APIView):
 
 class ValidateOTPView(APIView):
 
-    @validate_token(allowed_roles=['Driver'])  # Only drivers can validate the OTP
+    @validate_token(allowed_roles=['Driver'])
     @format_response
     @transaction.atomic
     def post(self, request):
@@ -136,3 +170,53 @@ class ValidateOTPView(APIView):
                 raise BadRequest('Booking does not exist.')
         else:
             raise BadRequest(serializer.errors)
+
+class DriverCompleteRideView(APIView):
+
+    @validate_token(allowed_roles=['Driver'])  # Only drivers can complete the ride via this view
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        driver = request.user  # Authenticated driver
+        booking_id = request.data.get('booking_id')  # Extract booking_id from request body
+
+        if not booking_id:
+            raise BadRequest('Booking ID is required.')
+
+        try:
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+
+            if booking.status != 'on_trip':
+                raise BadRequest('Only trips that are in-progress can be completed.')
+
+            if booking.driver != driver:
+                raise Unauthorized('You are not authorized to complete this booking.')
+
+            # Use the driver's current latitude and longitude from the Driver model
+            current_latitude = driver.current_latitude
+            current_longitude = driver.current_longitude
+
+            if not current_latitude or not current_longitude:
+                raise BadRequest('Driver location is not available.')
+
+            # Use PlacesRepository to calculate the distance between current location and dropoff location
+            place_repository = PlaceRepository(api_key=Settings.GOOGLE_API_KEY)
+            distance_value, _ = place_repository.get_distance_and_time(
+                origin_lat=current_latitude,
+                origin_lng=current_longitude,
+                destination_lat=booking.dropoff_location.latitude,
+                destination_lng=booking.dropoff_location.longitude
+            )
+
+            if distance_value > 50:
+                raise BadRequest('You must be within 50 meters of the dropoff location to complete the ride.')
+
+            # Mark the booking as completed
+            booking.status = 'completed'
+            booking.dropoff_time = timezone.now()  # Record the dropoff time
+            booking.save()
+
+            return ({'message': 'Ride completed successfully.'}, 200)
+        
+        except Booking.DoesNotExist:
+            raise BadRequest('Booking does not exist.')

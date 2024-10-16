@@ -27,6 +27,8 @@ class Driver(models.Model):
     availability_status = models.BooleanField(default=True)
     fleet_owner = models.ForeignKey('FleetOwner', on_delete=models.CASCADE, null=True, blank=True)
     available_bookings = models.ManyToManyField(Booking, related_name='available_drivers', blank=True)
+    total_rides = models.PositiveIntegerField(default=0)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
 
 class FleetOwner(models.Model):
     email = models.EmailField(unique=True)
