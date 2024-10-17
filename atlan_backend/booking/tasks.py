@@ -1,10 +1,8 @@
-from celery import shared_task
 from time import sleep
 from django.conf import settings
+
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from asgiref.sync import sync_to_async
-import asyncio
 import after_response
 
 from authentication.models import Driver
@@ -41,9 +39,10 @@ def find_nearby_drivers(booking_id):
         return
     
     place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
-    search_radius = 1  # Initial radius in km
+    search_radius = settings.SEARCH_RADIUS
+    
     time_elapsed = 0
-    max_time = 300  # 5 minutes in seconds
+    max_time = settings.MAX_SEARCH_TIME
     
     while time_elapsed <= max_time:
         booking.refresh_from_db()

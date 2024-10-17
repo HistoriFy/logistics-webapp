@@ -17,6 +17,8 @@ from celery import Celery
 
 from datetime import timedelta
 
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,16 +26,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(x_6c@l6jd@v056%b_8hfm0frguk#ld3ctqb(21$-20-j623g9'
-
+## ENV variables
+SECRET_KEY = os.getenv('SECRET_KEY')
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+# SEARCH ALGORITHM SETTINGS
+SEARCH_RADIUS = os.getenv('SEARCH_RADIUS', 1) # Initial radius in km
+MAX_SEARCH_TIME = os.getenv('MAX_SEARCH_TIME', 300) # 5 minutes in seconds
+
+# SIMULATION SETTINGS
+DRIVER_SPEED = os.getenv('DRIVER_SPEED', 800) # Speed of driver in meters per update
+RANDOM_LOCATION_RADIUS = os.getenv('RANDOM_LOCATION_RADIUS', 2000) # Radius for pickup radius
+
+#JWT configuration
+ACCESS_TOKEN_LIFETIME = timedelta(days=os.getenv('ACCESS_TOKEN_LIFETIME', 7))
+
+#REDIS configuration
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+REDIS_HOST = REDIS_URL.split('//')[1].split(':')[0]
+REDIS_PORT = REDIS_URL.split('//')[1].split(':')[1].split('/')[0]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # DEBUG = False
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 # ALLOWED_HOSTS = []
 
@@ -49,6 +67,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt',
     'authentication',
     'vehicle_type',
     'fleet_owner',
@@ -60,6 +81,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -89,19 +111,24 @@ TEMPLATES = [
 ASGI_APPLICATION = 'atlan_backend.asgi.application'
 WSGI_APPLICATION = 'atlan_backend.wsgi.application'
 
+#CORS
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'OPTIONS',
+    'POST',
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'atlan'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -140,6 +167,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -148,34 +177,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Channel layer definitions
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             'hosts': [('localhost', 6379)],
-#         },
-#     },
-# }
-
-# testing channel definitions
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(REDIS_HOST, int(REDIS_PORT))],
+        },
     },
 }
+
+# testing channel definitions
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     },
+# }
 
 
 # Celery configuration
 
 #temp settings for testing
-CELERY_TASK_ALWAYS_EAGER = True 
-CELERY_TASK_EAGER_PROPAGATES = True 
+# CELERY_TASK_ALWAYS_EAGER = True 
+# CELERY_TASK_EAGER_PROPAGATES = True 
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', REDIS_URL)
+CELERY_TASK_ALWAYS_EAGER = False
 
 celery_app = Celery('atlan_backend')
 celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 celery_app.autodiscover_tasks()
 
-#JWT configuration
 
-
-ACCESS_TOKEN_LIFETIME = timedelta(days=1)
