@@ -37,6 +37,6 @@ class JWTAuthMiddleware(BaseMiddleware):
             return await super().__call__(scope, receive, send)
         
         except Exception as e:
-            print(f"Error in middleware: {str(e)}")
+            print(f"Error in User middleware: {str(e)}")
             scope['user'] = AnonymousUser()
             return await super().__call__(scope, receive, send)

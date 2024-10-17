@@ -6,7 +6,7 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from .models import GPSTracking
+from .models import GPSTracking, SimulationStatus
 from authentication.models import Driver
 from booking.models import Booking
 
@@ -336,3 +336,30 @@ class DriverCompleteRideView(APIView):
         
         except Booking.DoesNotExist:
             raise BadRequest('Booking does not exist.')
+
+class DriverSimulateToggleView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
+    @format_response
+    @transaction.atomic
+    def get(self, request):
+        driver = request.user
+
+        if driver.status == 'on_trip':
+            raise BadRequest('Driver is currently on a trip and cannot change simulation status.')
+        
+        simulate_row = SimulationStatus.objects.first()
+        
+        if simulate_row.simulation_status == True:
+            simulate_row.simulation_status = False
+        elif simulate_row.simulation_status == False:
+            simulate_row.simulation_status = True
+        else:
+            raise BadRequest('Simulation status is not valid.')
+        
+        simulate_row.save()
+
+        return ({
+            'message': f'Driver simulation status toggled to {simulate_row.simulation_status}.',
+        }, 200)

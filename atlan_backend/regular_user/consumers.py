@@ -38,3 +38,6 @@ class BookingStatusConsumer(AsyncWebsocketConsumer):
             'otp': event['otp'],
             'message': 'Your booking has been accepted. Here is your OTP to start the trip.'
         }))
+    
+    async def location_update(self, event):
+        await self.send(text_data=json.dumps(event))

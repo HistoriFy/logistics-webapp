@@ -1,10 +1,8 @@
 from django.db import models
-from django.conf import settings
-from django.apps import apps
+import random
 
 from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel
-import random
 
 class Location(models.Model):
     PICKUP = 'pickup'

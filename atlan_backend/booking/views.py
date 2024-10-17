@@ -3,14 +3,16 @@ import asyncio
 from rest_framework.views import APIView
 from decimal import Decimal
 from datetime import timedelta
-import after_response
 
 from .serializers import BookingCreateSerializer, PlacePredictionSerializer, PriceEstimationSerializer, PlaceLatLongSerializer
 from .models import Booking, Location
+
 from .tasks import find_nearby_drivers
+from driver.tasks import simulate_driver_movement
 
 from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel, Region
+from driver.models import SimulationStatus
 
 from utils.custom_jwt_auth import CustomJWTAuthentication, IsRegularUser
 
@@ -214,7 +216,13 @@ class BookingCreateView(APIView):
                 'status': booking.status
             }
             
+            #algorithm task call
             find_nearby_drivers.after_response(booking.id)
+            
+            #driver simulation task call
+            simulate_row = SimulationStatus.objects.first()
+            if simulate_row.simulation_status == True:
+                simulate_driver_movement.after_response(booking.id)
             
             return (response_data, 201)
 

@@ -9,3 +9,9 @@ class GPSTracking(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=7)
     speed = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     heading = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+class SimulationStatus(models.Model):
+    simulation_status = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.simulation_status)

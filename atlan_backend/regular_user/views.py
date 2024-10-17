@@ -3,6 +3,9 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from utils.custom_jwt_auth import CustomJWTAuthentication, IsRegularUser
 
 from utils.helpers import format_response
@@ -57,12 +60,28 @@ class UserCancelBookingView(APIView):
             if booking.user != user:
                 raise Unauthorized('You are not authorized to cancel this booking.')
 
+            if booking.status != 'pending':
+                driver.status = 'available'
+                driver.save()      
+            
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"driver_{driver.id}_available_bookings",
+                    {
+                        'type': 'available_booking_update',
+                        'message': {
+                            'status': 'cancelled_by_user',
+                            'booking_id': booking.id,
+                            'pickup_location': booking.pickup_location.address,
+                            'dropoff_location': booking.dropoff_location.address,
+                        }
+                    }
+                )
+            
             booking.status = 'cancelled'
             booking.feedback = feedback
             booking.save()
             
-            driver.status = 'available'
-            driver.save()
 
             return ({'message': 'Booking cancelled successfully.'}, 200)
         

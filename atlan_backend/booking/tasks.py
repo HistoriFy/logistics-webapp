@@ -46,7 +46,7 @@ def find_nearby_drivers(booking_id):
     max_time = 300  # 5 minutes in seconds
     
     while time_elapsed <= max_time:
-        booking = Booking.objects.get(id=booking_id)
+        booking.refresh_from_db()
         if booking.status in ['accepted', 'on_trip']:
             # print(f"Booking {booking.id} already accepted or in progress.")
             return
