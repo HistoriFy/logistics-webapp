@@ -6,6 +6,7 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from .models import GPSTracking
 from authentication.models import Driver
 from booking.models import Booking
 
@@ -15,7 +16,41 @@ from utils.helpers import format_response
 from utils.exceptions import BadRequest, Unauthorized
 from utils.google_endpoints import PlaceRepository
 
-from .serializers import BookingActionSerializer, ValidateOTPSerializer, BookingDriverCancelSerializer
+from .serializers import BookingActionSerializer, ValidateOTPSerializer, BookingDriverCancelSerializer, GPSTrackingSerializer
+
+class GPSTrackingCreateView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        serializer = GPSTrackingSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            raise BadRequest(serializer.errors)
+        
+        driver = request.user
+        
+        booking = Booking.objects.filter(driver=driver, status__in=['on_trip', 'accepted']).first()
+        booking_id = booking.id if booking else None
+        
+        gps_tracking = GPSTracking.objects.create(
+            driver=driver,
+            booking=booking,
+            latitude=serializer.validated_data.get('latitude'),
+            longitude=serializer.validated_data.get('longitude'),
+            speed=serializer.validated_data.get('speed', None),
+            heading=serializer.validated_data.get('heading', None),
+        )
+        
+        driver.current_latitude = gps_tracking.latitude
+        driver.current_longitude = gps_tracking.longitude
+        driver.save()
+        
+        return ({
+            'message': 'GPS data logged successfully.',
+        }, 201)     
 
 class AcceptBookingView(APIView):
     authentication_classes = [CustomJWTAuthentication]

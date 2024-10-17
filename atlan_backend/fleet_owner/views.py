@@ -192,3 +192,38 @@ class ViewVehiclesView(APIView):
             raise Unauthorized('You are not authorized to perform this action.')
         except Exception as e:
             raise BadRequest(str(e))
+
+class ViewVehiclesByDriverView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+
+    @format_response
+    def get(self, request):
+        try:
+            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            drivers = Driver.objects.filter(fleet_owner=fleet_owner)
+            vehicles = Vehicle.objects.filter(driver__in=drivers)
+
+            if not vehicles.exists():
+                return ({'message': 'No matched vehicles found for the fleet owner.'}, 200)
+
+            vehicle_list = [
+                {
+                    'vehicle_id': vehicle.vehicle_id,
+                    'license_plate': vehicle.license_plate,
+                    'vehicle_type': vehicle.vehicle_type.type_name,
+                    'driver_id': vehicle.driver.id,
+                    'driver_name': vehicle.driver.name,
+                    'driver_phone': vehicle.driver.phone,
+                    'status': vehicle.driver.status,
+                    'availability_status': vehicle.driver.availability_status,
+                }
+                for vehicle in vehicles
+            ]
+
+            return ({'vehicles': vehicle_list}, 200)
+
+        except FleetOwner.DoesNotExist:
+            raise Unauthorized('You are not authorized to perform this action.')
+        except Exception as e:
+            raise BadRequest(str(e))
