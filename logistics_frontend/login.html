@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LogiSwift</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --card-bg-color: #fff;
+            --input-bg-color: #fff;
+            --input-border-color: #ddd;
+        }
+
+        .dark-mode {
+            --primary-color: #4fa3d1;
+            --primary-dark: #3498db;
+            --bg-color: #1a1a1a;
+            --text-color: #f4f4f4;
+            --card-bg-color: #2c2c2c;
+            --input-bg-color: #3a3a3a;
+            --input-border-color: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--card-bg-color);
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-size: 14px;
+        }
+
+        .toggle-btn.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .toggle-btn:first-child {
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .toggle-btn:last-child {
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            .toggle-btn {
+                font-size: 12px;
+                padding: 8px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle" id="darkModeToggle">🌓</button>
+    <div class="container">
+        <h1>Login to your account</h1>
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="userToggle">User</button>
+            <button class="toggle-btn" id="fleetToggle">Fleet Owner</button>
+            <button class="toggle-btn" id="driverToggle">Driver</button>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="password-toggle" id="passwordToggle">👁️</button>
+                </div>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const userToggle = document.getElementById('userToggle');
+        const fleetToggle = document.getElementById('fleetToggle');
+        const driverToggle = document.getElementById('driverToggle');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const loginForm = document.getElementById('loginForm');
+
+        // Check for saved user preference and set initial mode
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        body.classList.toggle('dark-mode', isDarkMode);
+        updateDarkModeToggle(isDarkMode);
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            updateDarkModeToggle(isDark);
+        });
+
+        function updateDarkModeToggle(isDark) {
+            darkModeToggle.textContent = isDark ? '☀️' : '🌓';
+        }
+
+        function setActiveToggle(activeToggle) {
+            [userToggle, fleetToggle, driverToggle].forEach(toggle => {
+                toggle.classList.remove('active');
+            });
+            activeToggle.classList.add('active');
+        }
+
+        userToggle.addEventListener('click', () => setActiveToggle(userToggle));
+        fleetToggle.addEventListener('click', () => setActiveToggle(fleetToggle));
+        driverToggle.addEventListener('click', () => setActiveToggle(driverToggle));
+
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggle.textContent = type === 'password' ? '👁️' : '🔒';
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(loginForm);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Add user type to the data
+            if (userToggle.classList.contains('active')) {
+                data.userType = 'user';
+            } else if (fleetToggle.classList.contains('active')) {
+                data.userType = 'fleet_owner';
+            } else if (driverToggle.classList.contains('active')) {
+                data.userType = 'driver';
+            }
+
+            console.log('Form submitted:', data);
+            // Here you would typically send the data to your backend
+            // For example:
+            // fetch('/api/login', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify(data),
+            // })
+            // .then(response => response.json())
+            // .then(data => console.log('Success:', data))
+            // .catch((error) => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

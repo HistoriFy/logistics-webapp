@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Owner Dashboard - LogiSwift</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --card-bg-color: #fff;
+            --input-bg-color: #fff;
+            --input-border-color: #ddd;
+        }
+
+        .dark-mode {
+            --primary-color: #4fa3d1;
+            --primary-dark: #3498db;
+            --bg-color: #1a1a1a;
+            --text-color: #f4f4f4;
+            --card-bg-color: #2c2c2c;
+            --input-bg-color: #3a3a3a;
+            --input-border-color: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--card-bg-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid var(--input-border-color);
+            text-align: left;
+        }
+
+        th:first-child, td:first-child {
+            border-left: none;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        tr:first-child th {
+            border-top: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.success {
+            background-color: #2ecc71;
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+                margin-right: 0;
+            }
+            .card {
+                overflow: auto;
+            }
+
+            .card > div {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle" id="darkModeToggle">🌓</button>
+    <div class="container">
+        <h1>Fleet Owner Dashboard</h1>
+        <div class="tabs">
+            <button class="tab active" data-tab="drivers">Drivers</button>
+            <button class="tab" data-tab="vehicles">Vehicles</button>
+            <button class="tab" data-tab="assign">Assign Vehicle</button>
+            <button class="tab" data-tab="deassign">Deassign Vehicle</button>
+            <button class="tab" data-tab="vehiclesByDriver">Vehicles by Driver</button>
+        </div>
+
+        <div id="driversTab" class="tab-content active">
+            <div class="card">
+                <h2>Add New Driver</h2>
+                <form id="addDriverForm">
+                    <div class="form-group">
+                        <label for="driverName">Name</label>
+                        <input type="text" id="driverName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverEmail">Email</label>
+                        <input type="email" id="driverEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverPhone">Phone</label>
+                        <input type="tel" id="driverPhone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverLicense">License Number</label>
+                        <input type="text" id="driverLicense" name="license_number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverPassword">Password</label>
+                        <input type="password" id="driverPassword" name="password" required>
+                    </div>
+                    <button type="submit">Add Driver</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Driver List</h2>
+                <div>
+                    <table id="driverTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>License Number</th>
+                                <th>Status</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button id="refreshDrivers">Refresh Driver List</button>
+            </div>
+        </div>
+
+        <div id="vehiclesTab" class="tab-content">
+            <div class="card">
+                <h2>Add New Vehicle</h2>
+                <form id="addVehicleForm">
+                    <div class="form-group">
+                        <label for="vehicleType">Vehicle Type</label>
+                        <select id="vehicleType" name="vehicle_type_id" required>
+                            <option value="">Select vehicle type</option>
+                            <option value="1">Two Wheeler</option>
+                            <option value="2">Three Wheeler</option>
+                            <option value="3">Small Truck</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="licensePlate">License Plate</label>
+                        <input type="text" id="licensePlate" name="license_plate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="capacity">Capacity</label>
+                        <input type="number" id="capacity" name="capacity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="make">Make</label>
+                        <input type="text" id="make" name="make" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model</label>
+                        <input type="text" id="model" name="model" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <input type="number" id="year" name="year" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" name="color" required>
+                    </div>
+                    <button type="submit">Add Vehicle</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Vehicle List</h2>
+                <div>
+                    <table id="vehicleTable">
+                        <thead>
+                            <tr>
+                                <th>License Plate</th>
+                                <th>Type</th>
+                                <th>Capacity</th>
+                                <th>Make</th>
+                                <th>Model</th>
+                                <th>Year</th>
+                                <th>Color</th>
+                                <th>Driver</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button id="refreshVehicles">Refresh Vehicle List</button>
+            </div>
+        </div>
+
+        <div id="assignTab" class="tab-content">
+            <div class="card">
+                <h2>Assign Vehicle to Driver</h2>
+                <form id="assignVehicleForm">
+                    <div class="form-group">
+                        <label for="assignDriver">Driver</label>
+                        <select id="assignDriver" name="driver_id" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignVehicle">Vehicle</label>
+                        <select id="assignVehicle" name="vehicle_id" required></select>
+                    </div>
+                    <button type="submit">Assign Vehicle</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="deassignTab" class="tab-content">
+            <div class="card">
+                <h2>Deassign Vehicle</h2>
+                <form id="deassignVehicleForm">
+                    <div class="form-group">
+                        <label for="deassignVehicle">Vehicle</label>
+                        <select id="deassignVehicle" name="vehicle_id" required></select>
+                    </div>
+                    <button type="submit">Deassign Vehicle</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="vehiclesByDriverTab" class="tab-content">
+            <div class="card">
+                <h2>Vehicles by Driver</h2>
+                <div>
+                    <table id="vehiclesByDriverTable">
+                        <thead>
+                            <tr>
+                                <th>Vehicle ID</th>
+                                <th>License Plate</th>
+                                <th>Vehicle Type</th>
+                                <th>Driver ID</th>
+                                <th>Driver Name</th>
+                                <th>Driver Phone</th>
+                                <th>Status</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button id="refreshVehiclesByDriver">Refresh Vehicles by Driver</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Dark mode toggle
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        // Function to update button text based on dark mode status
+        function updateDarkModeToggle(isDark) {
+            darkModeToggle.textContent = isDark ? '☀️' : '🌓';
+        }
+
+        // Check for saved user preference and set initial mode
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            body.classList.add('dark-mode');
+        } else {
+            body.classList.remove('dark-mode');
+        }
+        updateDarkModeToggle(isDarkMode);
+
+        // Add event listener to toggle dark mode on button click
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            updateDarkModeToggle(isDark);
+        });
+
+
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // Toast functionality
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+            }, 3000);
+        }
+
+        // Fetch drivers
+        async function fetchDrivers() {
+            try {
+                const response = await fetch('/api/view-drivers');
+                const data = await response.json();
+                const driverTable = document.getElementById('driverTable').getElementsByTagName('tbody')[0];
+                driverTable.innerHTML = '';
+                data.drivers.forEach(driver => {
+                    const row = driverTable.insertRow();
+                    
+                    row.innerHTML = `
+                        <td>${driver.name}</td>
+                        <td>${driver.email}</td>
+                        <td>${driver.phone}</td>
+                        <td>${driver.license_number}</td>
+                        <td>${driver.status}</td>
+                        <td>${driver.availability_status ? '✅' : '❌'}</td>
+                    `;
+                });
+                updateAssignDriverSelect(data.drivers);
+            } catch (error) {
+                showToast('Failed to fetch drivers', 'error');
+            }
+        }
+
+        // Fetch vehicles
+        async function fetchVehicles() {
+            try {
+                const response = await fetch('/api/view-vehicles');
+                const data = await response.json();
+                const vehicleTable = document.getElementById('vehicleTable').getElementsByTagName('tbody')[0];
+                vehicleTable.innerHTML = '';
+                data.vehicles.forEach(vehicle => {
+                    const row = vehicleTable.insertRow();
+                    row.innerHTML = `
+                        <td>${vehicle.license_plate}</td>
+                        <td>${vehicle.vehicle_type}</td>
+                        <td>${vehicle.capacity}</td>
+                        <td>${vehicle.make}</td>
+                        <td>${vehicle.model}</td>
+                        <td>${vehicle.year}</td>
+                        <td>${vehicle.color}</td>
+                        <td>${vehicle.driver || 'Unassigned'}</td>
+                        <td>${vehicle.driver ? `<button onclick="deassignVehicle(${vehicle.vehicle_id})">Deassign</button>` : ''}</td>
+                    `;
+                });
+                updateAssignVehicleSelect(data.vehicles);
+                updateDeassignVehicleSelect(data.vehicles);
+            } catch (error) {
+                showToast('Failed to fetch vehicles', 'error');
+            }
+        }
+
+        // Add driver
+        document.getElementById('addDriverForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const driverData = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/add-driver', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(driverData),
+                });
+                if (response.ok) {
+                    showToast('Driver added successfully', 'success');
+                    e.target.reset();
+                    fetchDrivers();
+                } else {
+                    throw new Error('Failed to add driver');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Add vehicle
+        document.getElementById('addVehicleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const vehicleData = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/add-vehicle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vehicleData),
+                });
+                if (response.ok) {
+                    showToast('Vehicle added successfully', 'success');
+                    e.target.reset();
+                    fetchVehicles();
+                } else {
+                    throw new Error('Failed to add vehicle');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Assign vehicle
+        document.getElementById('assignVehicleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const assignData = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/assign-vehicle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(assignData),
+                });
+                if (response.ok) {
+                    showToast('Vehicle assigned successfully', 'success');
+                    e.target.reset();
+                    fetchVehicles();
+                } else {
+                    throw new Error('Failed to assign vehicle');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Deassign vehicle
+        document.getElementById('deassignVehicleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const deassignData = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/deassign-vehicle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(deassignData),
+                });
+                if (response.ok) {
+                    showToast('Vehicle deassigned successfully', 'success');
+                    e.target.reset();
+                    fetchVehicles();
+                } else {
+                    throw new Error('Failed to deassign vehicle');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Fetch vehicles by driver
+        async function fetchVehiclesByDriver() {
+            try {
+                const response = await fetch('/api/view-vehicles-by-driver');
+                const data = await response.json();
+                const vehiclesByDriverTable = document.getElementById('vehiclesByDriverTable').getElementsByTagName('tbody')[0];
+                vehiclesByDriverTable.innerHTML = '';
+                data.vehicles.forEach(vehicle => {
+                    const row = vehiclesByDriverTable.insertRow();
+                    row.innerHTML = `
+                        <td>${vehicle.vehicle_id}</td>
+                        <td>${vehicle.license_plate}</td>
+                        <td>${vehicle.vehicle_type}</td>
+                        <td>${vehicle.driver_id}</td>
+                        <td>${vehicle.driver_name}</td>
+                        <td>${vehicle.driver_phone}</td>
+                        <td>${vehicle.status}</td>
+                        <td>${vehicle.availability_status ? '✅' : '❌'}</td>
+                    `;
+                });
+            } catch (error) {
+                showToast('Failed to fetch vehicles by driver', 'error');
+            }
+        }
+
+        // Update assign driver select
+        function updateAssignDriverSelect(drivers) {
+            const select = document.getElementById('assignDriver');
+            select.innerHTML = '<option value="">Select driver</option>';
+            drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.driver_id;
+                option.textContent = driver.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Update assign vehicle select
+        function updateAssignVehicleSelect(vehicles) {
+            const select = document.getElementById('assignVehicle');
+            select.innerHTML = '<option value="">Select vehicle</option>';
+            vehicles.filter(v => !v.driver).forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.vehicle_id;
+                option.textContent = `${vehicle.license_plate} - ${vehicle.make} ${vehicle.model}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Update deassign vehicle select
+        function updateDeassignVehicleSelect(vehicles) {
+            const select = document.getElementById('deassignVehicle');
+            select.innerHTML = '<option value="">Select vehicle</option>';
+            vehicles.filter(v => v.driver).forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.vehicle_id;
+                option.textContent = `${vehicle.license_plate} - ${vehicle.make} ${vehicle.model} (Driver: ${vehicle.driver})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Refresh buttons
+        document.getElementById('refreshDrivers').addEventListener('click', fetchDrivers);
+        document.getElementById('refreshVehicles').addEventListener('click', fetchVehicles);
+        document.getElementById('refreshVehiclesByDriver').addEventListener('click', fetchVehiclesByDriver);
+
+        // Initial data fetch
+        fetchDrivers();
+        fetchVehicles();
+        fetchVehiclesByDriver();
+    </script>
+</body>
+</html>

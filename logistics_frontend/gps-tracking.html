@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Driver GPS Tracking</title>
+    <style>
+        /* Optional: Add some basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #status {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Driver GPS Tracking</h1>
+    <button id="startTracking">Start Tracking</button>
+    <button id="stopTracking" disabled>Stop Tracking</button>
+    <div id="status"></div>
+
+    <script>
+        let trackingInterval = null;
+
+        const startButton = document.getElementById('startTracking');
+        const stopButton = document.getElementById('stopTracking');
+        const statusDiv = document.getElementById('status');
+
+        startButton.addEventListener('click', startTracking);
+        stopButton.addEventListener('click', stopTracking);
+
+        function startTracking() {
+            if (!navigator.geolocation) {
+                statusDiv.textContent = 'Geolocation is not supported by your browser.';
+                return;
+            }
+
+            statusDiv.textContent = 'Requesting location permission...';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    statusDiv.textContent = 'Location access granted.';
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+
+                    // Start updating location every 5 seconds
+                    sendLocation(); // Send immediately
+                    trackingInterval = setInterval(sendLocation, 5000);
+                },
+                handleError,
+                {
+                    enableHighAccuracy: true
+                }
+            );
+        }
+
+        function stopTracking() {
+            clearInterval(trackingInterval);
+            trackingInterval = null;
+            statusDiv.textContent = 'Tracking stopped.';
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        }
+
+        function sendLocation() {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude, speed, heading } = position.coords;
+
+                    statusDiv.textContent = `Current Position: Latitude ${latitude.toFixed(6)}, Longitude ${longitude.toFixed(6)}`;
+
+                    // Send data to backend
+                    sendDataToBackend(latitude, longitude, speed, heading);
+                },
+                handleError,
+                {
+                    enableHighAccuracy: true
+                }
+            );
+        }
+
+        function sendDataToBackend(latitude, longitude, speed, heading) {
+            const data = {
+                latitude: latitude,
+                longitude: longitude,
+                speed: speed,       // May be null
+                heading: heading    // May be null
+            };
+
+            fetch('https://your-backend-domain.com/gps-tracking/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Replace with actual authentication method
+                    'Authorization': 'Token your_auth_token_here'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Location data sent:', data);
+            })
+            .catch((error) => {
+                console.error('Error sending data:', error);
+            });
+        }
+
+        function handleError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    statusDiv.textContent = 'User denied the request for Geolocation.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    statusDiv.textContent = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    statusDiv.textContent = 'The request to get user location timed out.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    statusDiv.textContent = 'An unknown error occurred.';
+                    break;
+            }
+            console.error('Geolocation error:', error);
+        }
+    </script>
+</body>
+</html>
