@@ -38,7 +38,9 @@ REDIS_HOST = REDIS_URL.split('//')[1].split(':')[0]
 REDIS_PORT = REDIS_URL.split('//')[1].split(':')[1].split('/')[0]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', False)
+if isinstance(DEBUG, str) and DEBUG.lower() == 'true':
+    DEBUG = True
 
 # DEBUG = False
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
