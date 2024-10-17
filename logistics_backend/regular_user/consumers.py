@@ -1,9 +1,10 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 
 class BookingStatusConsumer(AsyncWebsocketConsumer):
-    close_timeout = 600
+    close_timeout = settings.WEBSOCKET_TIMEOUT_USER
     
     async def connect(self):
         user = self.scope['user']

@@ -28,6 +28,10 @@ MAX_SEARCH_TIME = os.getenv('MAX_SEARCH_TIME', 300) # 5 minutes in seconds
 DRIVER_SPEED = os.getenv('DRIVER_SPEED', 800) # Speed of driver in meters per update
 RANDOM_LOCATION_RADIUS = os.getenv('RANDOM_LOCATION_RADIUS', 2000) # Radius for pickup radius
 
+# websocket configuration
+WEBSOCKET_TIMEOUT_USER = os.getenv('WEBSOCKET_TIMEOUT', 60 * 60)
+WEBSOCKET_TIMEOUT_DRIVER = os.getenv('WEBSOCKET_TIMEOUT_DRIVER', 60 * 60)
+
 #JWT configuration
 ACCESS_TOKEN_LIFETIME = timedelta(days=os.getenv('ACCESS_TOKEN_LIFETIME', 7))
 
@@ -199,3 +203,56 @@ CELERY_TASK_ALWAYS_EAGER = False
 celery_app = Celery('logistics_backend')
 celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 celery_app.autodiscover_tasks()
+
+# Logging configuration
+
+LOGS_DIR = BASE_DIR / 'logs'
+if not LOGS_DIR.exists():
+    LOGS_DIR.mkdir()
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOGS_DIR / 'requests.log',
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': LOGS_DIR / 'errors.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        }
+    }
+}

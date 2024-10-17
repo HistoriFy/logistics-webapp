@@ -1,9 +1,10 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 
 class DriverBookingConsumer(AsyncWebsocketConsumer):
-    close_timeout = 600
+    close_timeout = settings.WEBSOCKET_TIMEOUT_DRIVER
 
     async def connect(self):
         driver = self.scope['user']
@@ -37,7 +38,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
 class DriverAvailableBookingsConsumer(AsyncWebsocketConsumer):
-    close_timeout = 600
+    close_timeout = settings.WEBSOCKET_TIMEOUT_DRIVER
 
     async def connect(self):
         driver = self.scope['user']
