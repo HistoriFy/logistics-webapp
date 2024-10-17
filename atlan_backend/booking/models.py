@@ -49,8 +49,8 @@ class Booking(models.Model):
     distance = models.FloatField()
     estimated_duration = models.DurationField()
     payment_method = models.CharField(max_length=50)
-    user_rating = models.PositiveSmallIntegerField(null=True, blank=True)
-    driver_feedback = models.TextField(null=True, blank=True)
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
+    feedback = models.TextField(null=True, blank=True)
     otp = models.CharField(max_length=6, null=True, blank=True)
 
     def __str__(self):

@@ -4,6 +4,7 @@ from booking.models import Booking
 
 class BookingUserCancelSerializer(serializers.Serializer):
     booking_id = serializers.CharField(required=True)
+    feedback = serializers.CharField(required=True)
 
     def validate_booking_id(self, value):
         if not value:
@@ -17,6 +18,12 @@ class BookingUserCancelSerializer(serializers.Serializer):
             raise serializers.ValidationError("Booking ID must be a valid integer.")
         
         return booking_id
+    
+    def validate_feedback(self, value):
+        if not value:
+            raise serializers.ValidationError("Feedback is required.")
+        
+        return value
 
 class UserFeedbackSerializer(serializers.Serializer):
     booking_id = serializers.IntegerField()

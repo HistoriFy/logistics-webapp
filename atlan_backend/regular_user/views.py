@@ -45,6 +45,7 @@ class UserCancelBookingView(APIView):
             raise BadRequest(str(serializer.errors))
         
         booking_id = serializer.validated_data['booking_id']
+        feedback = serializer.validated_data['feedback']
 
         try:
             booking = Booking.objects.select_for_update().get(id=booking_id)
@@ -57,6 +58,7 @@ class UserCancelBookingView(APIView):
                 raise Unauthorized('You are not authorized to cancel this booking.')
 
             booking.status = 'cancelled'
+            booking.feedback = feedback
             booking.save()
             
             driver.status = 'available'
@@ -148,8 +150,8 @@ class UserFeedbackView(APIView):
                 raise BadRequest('No driver associated with this booking.')
 
             # Save feedback and rating on the booking
-            booking.user_rating = rating
-            booking.driver_feedback = feedback
+            booking.rating = rating
+            booking.feedback = feedback
             booking.save()
 
             # Update the driver's rating and total rides

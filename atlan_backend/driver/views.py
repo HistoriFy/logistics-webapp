@@ -71,6 +71,8 @@ class AcceptBookingView(APIView):
                         'status': 'accepted',
                         'booking_id': booking.id,
                         'pickup_location': booking.pickup_location.address,
+                        'phone_number': booking.user.phone,
+                        'dropoff_location': booking.dropoff_location.address,
                     }
                 }
             )
@@ -122,6 +124,7 @@ class DriverCancelBookingView(APIView):
             raise BadRequest(str(serializer.errors))
         
         booking_id = serializer.validated_data['booking_id']
+        feedback = serializer.validated_data['feedback']
 
         try:
             booking = Booking.objects.select_for_update().get(id=booking_id)
@@ -133,6 +136,7 @@ class DriverCancelBookingView(APIView):
                 raise Unauthorized('You are not authorized to cancel this booking.')
 
             booking.status = 'cancelled'
+            booking.feedback = feedback
             booking.save()
             
             driver.status = 'available'
