@@ -29,6 +29,7 @@ DRIVER_SPEED = os.getenv('DRIVER_SPEED', 800) # Speed of driver in meters per up
 RANDOM_LOCATION_RADIUS = os.getenv('RANDOM_LOCATION_RADIUS', 2000) # Radius for pickup radius
 
 # websocket configuration
+# default timeout is 1 hour
 WEBSOCKET_TIMEOUT_USER = os.getenv('WEBSOCKET_TIMEOUT', 60 * 60)
 WEBSOCKET_TIMEOUT_DRIVER = os.getenv('WEBSOCKET_TIMEOUT_DRIVER', 60 * 60)
 
@@ -65,7 +66,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'rest_framework_simplejwt',
     'authentication',
     'vehicle_type',
     'fleet_owner',

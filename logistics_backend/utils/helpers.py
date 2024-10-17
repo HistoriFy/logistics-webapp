@@ -5,11 +5,8 @@ from typing import Any, Dict, Optional
 from functools import wraps
 from django.http import JsonResponse
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework import serializers
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from authentication.models import User, Driver, FleetOwner
 from utils.exceptions import BadRequest
 
 
@@ -17,57 +14,60 @@ from utils.exceptions import BadRequest
 ---DECORATOR---
 Used to validate the token in the request headers
 '''
-def validate_token(allowed_roles=None):
-    if allowed_roles is None:
-        allowed_roles = ['User', 'Driver', 'FleetOwner']  # Default: allow all roles
+## Deprecated: custom_jwt_gen and custom_jwt_auth are used instead
 
-    def decorator(func):
-        @wraps(func)
-        def wrapper_func(self, request, *args, **kwargs):
-            try:
-                jwt_authenticator = JWTAuthentication()
 
-                # Access the Authorization header from request.META
-                auth_header = request.META.get('HTTP_AUTHORIZATION')
-                print("auth_header:", auth_header)  # Debugging statement
-                if auth_header is None:
-                    return response_obj(
-                        success=False,
-                        message='Authorization header missing',
-                        status_code=status.HTTP_401_UNAUTHORIZED
-                    )
+# def validate_token(allowed_roles=None):
+#     if allowed_roles is None:
+#         allowed_roles = ['User', 'Driver', 'FleetOwner']  # Default: allow all roles
 
-                token = auth_header.split(' ')[1]
-                validated_token = jwt_authenticator.get_validated_token(token)
-                user = jwt_authenticator.get_user(validated_token)
+#     def decorator(func):
+#         @wraps(func)
+#         def wrapper_func(self, request, *args, **kwargs):
+#             try:
+#                 jwt_authenticator = JWTAuthentication()
 
-                request.user = user
+#                 # Access the Authorization header from request.META
+#                 auth_header = request.META.get('HTTP_AUTHORIZATION')
+#                 print("auth_header:", auth_header)  # Debugging statement
+#                 if auth_header is None:
+#                     return response_obj(
+#                         success=False,
+#                         message='Authorization header missing',
+#                         status_code=status.HTTP_401_UNAUTHORIZED
+#                     )
 
-                # Role-based access control
-                if 'FleetOwner' in allowed_roles and FleetOwner.objects.filter(email=user.email).exists():
-                    return func(self, request, *args, **kwargs)
-                if 'Driver' in allowed_roles and Driver.objects.filter(email=user.email).exists():
-                    return func(self, request, *args, **kwargs)
-                if 'User' in allowed_roles and User.objects.filter(email=user.email).exists():
-                    return func(self, request, *args, **kwargs)
+#                 token = auth_header.split(' ')[1]
+#                 validated_token = jwt_authenticator.get_validated_token(token)
+#                 user = jwt_authenticator.get_user(validated_token)
 
-                # If none of the allowed roles matched, return access denied
-                return response_obj(
-                    success=False,
-                    message='Access denied: Unauthorized user group',
-                    status_code=status.HTTP_403_FORBIDDEN
-                )
+#                 request.user = user
 
-            except Exception as e:
-                return response_obj(
-                    success=False,
-                    message='An error occurred',
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=e 
-                )
+#                 # Role-based access control
+#                 if 'FleetOwner' in allowed_roles and FleetOwner.objects.filter(email=user.email).exists():
+#                     return func(self, request, *args, **kwargs)
+#                 if 'Driver' in allowed_roles and Driver.objects.filter(email=user.email).exists():
+#                     return func(self, request, *args, **kwargs)
+#                 if 'User' in allowed_roles and User.objects.filter(email=user.email).exists():
+#                     return func(self, request, *args, **kwargs)
 
-        return wrapper_func
-    return decorator
+#                 # If none of the allowed roles matched, return access denied
+#                 return response_obj(
+#                     success=False,
+#                     message='Access denied: Unauthorized user group',
+#                     status_code=status.HTTP_403_FORBIDDEN
+#                 )
+
+#             except Exception as e:
+#                 return response_obj(
+#                     success=False,
+#                     message='An error occurred',
+#                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#                     error=e 
+#                 )
+
+#         return wrapper_func
+#     return decorator
 
 def response_obj(success=True, message='', status_code=200, data=None, error=''):
     data = {

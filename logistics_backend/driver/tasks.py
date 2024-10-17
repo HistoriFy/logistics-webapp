@@ -13,7 +13,7 @@ def simulate_driver_movement(booking_id):
     try:
         driver = Driver.objects.filter(status='available', availability_status=True).first()
         if not driver:
-            print("No available driver found.")
+            print("No available driver found for Simulation. Restart the process...")
             return
         
         # Get the booking associated with this task
@@ -36,7 +36,7 @@ def simulate_driver_movement(booking_id):
             
             # Simulate pending state (random location generation)
             if booking.status == 'pending' and not pending_handled:
-                print("Booking is pending. Generating random location near the pickup point for driver.")
+                # print("Booking is pending. Generating random location near the pickup point for driver.")
                 new_lat, new_lng = generate_random_location(pickup_lat, pickup_lng)
                 driver.current_latitude = new_lat
                 driver.current_longitude = new_lng
@@ -46,7 +46,7 @@ def simulate_driver_movement(booking_id):
             
             # Simulate movement to pickup location after booking is accepted
             if booking.status == 'accepted' and not accepted_handled:
-                print("Booking is accepted. Moving driver towards pickup location...")
+                # print("Booking is accepted. Moving driver towards pickup location...")
                 new_lat, new_lng = move_towards(driver.current_latitude, driver.current_longitude, pickup_lat, pickup_lng)
                 driver.current_latitude = new_lat
                 driver.current_longitude = new_lng
@@ -56,12 +56,12 @@ def simulate_driver_movement(booking_id):
                 # Check if driver is at the pickup location
                 if (new_lat, new_lng) == (pickup_lat, pickup_lng):
                     _broadcast_location_update(driver, booking, status="at_pickup")
-                    print("Driver has reached the pickup location...")
+                    # print("Driver has reached the pickup location...")
                     accepted_handled = True
             
             # Simulate movement during the trip (on the way to dropoff location)
             if booking.status == 'on_trip':
-                print("Driver is on trip. Moving driver towards dropoff location...")
+                # print("Driver is on trip. Moving driver towards dropoff location...")
                 new_lat, new_lng = move_towards(driver.current_latitude, driver.current_longitude, dropoff_lat, dropoff_lng)
                 driver.current_latitude = new_lat
                 driver.current_longitude = new_lng
@@ -70,14 +70,14 @@ def simulate_driver_movement(booking_id):
 
                 # If the driver reaches the dropoff location, broadcast that the driver is at the dropoff point
                 if (new_lat, new_lng) == (dropoff_lat, dropoff_lng):
-                    print("Driver has reached the dropoff location...")
+                    # print("Driver has reached the dropoff location...")
                     _broadcast_location_update(driver, booking, status="at_dropoff")
                     return  # End the simulation as the trip is completed
             
             sleep(5)  # Delay before next location update
 
     except Booking.DoesNotExist:
-        print(f"Booking with ID {booking_id} does not exist.")
+        print(f"Booking with ID {booking_id} does not exist. Restart the process...")
 
 
 def _broadcast_location_update(driver, booking=None, status=None):

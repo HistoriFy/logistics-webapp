@@ -1,5 +1,4 @@
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
 

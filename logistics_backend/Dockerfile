@@ -45,6 +45,10 @@ COPY redis.conf /etc/redis/redis.conf
 # Expose the necessary ports
 EXPOSE 80 8000
 
+# Logs folder permissions
+RUN mkdir -p /app/logs
+RUN chmod -R 777 /app/logs
+
 # Start services in the start.sh script
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
