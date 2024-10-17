@@ -26,6 +26,7 @@ gunicorn = "^23.0.0"
 psycopg = "^3.2.2"
 psycopg-binary = "^3.2.2"
 sqlparse = "^0.5.1"
+requests = "^2.32.3"
 
 
 

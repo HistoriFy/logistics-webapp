@@ -3,7 +3,7 @@
 from django.db import migrations, models
 
 def create_default_simulation_status(apps, schema_editor):
-    SimulationStatus = apps.get_model('your_app_name', 'SimulationStatus')
+    SimulationStatus = apps.get_model('driver', 'SimulationStatus')
     SimulationStatus.objects.create(simulation_status=False)
 
 
