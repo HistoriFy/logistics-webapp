@@ -36,7 +36,7 @@ WEBSOCKET_TIMEOUT_DRIVER = os.getenv('WEBSOCKET_TIMEOUT_DRIVER', 60 * 60)
 ACCESS_TOKEN_LIFETIME = timedelta(days=os.getenv('ACCESS_TOKEN_LIFETIME', 7))
 
 #REDIS configuration
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
 
 REDIS_HOST = REDIS_URL.split('//')[1].split(':')[0]
 REDIS_PORT = REDIS_URL.split('//')[1].split(':')[1].split('/')[0]

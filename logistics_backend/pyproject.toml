@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "atlan-backend"
+name = "logistics-backend"
 version = "0.1.0"
 description = ""
 authors = ["HistoriFy <rathorehotandcool2002@gmail.com>"]
