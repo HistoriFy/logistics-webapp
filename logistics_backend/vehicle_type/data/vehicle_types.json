@@ -1,0 +1,26 @@
+[
+    {
+      "type_name": "2 Wheeler",
+      "description": "40cm x 40 cm x 40 cm",
+      "capacity": 20,
+      "image_url": null
+    },
+    {
+      "type_name": "3 Wheeler",
+      "description": "5.5 ft x 4.5 ft x 5 ft",
+      "capacity": 500,
+      "image_url": null
+    },
+    {
+      "type_name": "Pickup 9ft",
+      "description": "9ft x 5.5ft x 5.5 ft",
+      "capacity": 1700,
+      "image_url": null
+    },
+    {
+      "type_name": "14ft",
+      "description": "14ft x 6 ft x 6 ft",
+      "capacity": 3500,
+      "image_url": null
+    }
+  ]

@@ -1,0 +1,14 @@
+[
+    {
+      "region_name": "City",
+      "description": "Urban areas with high population density."
+    },
+    {
+      "region_name": "Town",
+      "description": "Smaller urban areas."
+    },
+    {
+      "region_name": "Village",
+      "description": "Rural areas with low population density."
+    }
+  ]
