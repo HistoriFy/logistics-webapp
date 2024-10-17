@@ -87,7 +87,7 @@ def find_nearby_drivers(booking_id):
         sleep(30)
         time_elapsed += 30
     
-    if booking.status not in ['accepted', 'on_trip']:
+    if booking.status not in ['accepted', 'on_trip', 'cancelled']:
         booking.status = 'expired'
         booking.save()
         # print(f"Booking {booking.id} expired after {max_time / 60} minutes.")

@@ -33,9 +33,6 @@ class DriverBookingConsumer(AsyncWebsocketConsumer):
         # Send booking update message to WebSocket
         await self.send(text_data=json.dumps(event['message']))
         
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth.models import AnonymousUser
 
 class DriverAvailableBookingsConsumer(AsyncWebsocketConsumer):
     close_timeout = settings.WEBSOCKET_TIMEOUT_DRIVER
