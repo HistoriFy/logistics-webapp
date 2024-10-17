@@ -118,6 +118,9 @@ class PriceEstimationView(APIView):
                     price_estimations.append({
                         'vehicle_type_id': vehicle_type.vehicle_type_id,
                         'vehicle_type': vehicle_type.type_name,
+                        'vehicle_weight': vehicle_type.capacity,
+                        'vehicle_dimensions': vehicle_type.description,
+                        'vehicle_image_url': vehicle_type.image_url,
                         'estimated_cost': float(round(estimated_cost, 2)),
                         'currency': 'INR'
                     })
