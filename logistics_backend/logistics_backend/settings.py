@@ -130,7 +130,7 @@ DATABASES = {
 # REST framework settings
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'logistics_backend.utils.custom_exception_handler.custom_exception_handler_function'
+    'EXCEPTION_HANDLER': 'utils.custom_exception_handler.custom_exception_handler_function'
 }
 
 
