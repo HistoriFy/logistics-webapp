@@ -1,47 +1,47 @@
-# Use the official lightweight Python image
 FROM python:3.12-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=1.7.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-        nginx \
-        redis-server \
-        supervisor \
-        git \
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    libpq-dev \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN pip install --no-cache-dir poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="${POETRY_HOME}/bin:$PATH"
 
-# Set the working directory
-WORKDIR /home/app
+COPY pyproject.toml poetry.lock ./
 
-# Copy the application code
-COPY . /home/app
+RUN poetry install --no-interaction --no-ansi
 
-# Install Python dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+COPY . .
 
-# Collect static files
+COPY nginx.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
+
+RUN mkdir -p /app/static /app/media
+
+COPY redis.conf /etc/redis/redis.conf
+
 RUN python manage.py collectstatic --noinput
 
-# Run database migrations
 RUN python manage.py migrate
 
-# Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN echo '#!/bin/bash\n\
+service nginx start\n\
+service redis-server start\n\
+celery -A atlan_backend worker --loglevel=info &\n\
+gunicorn atlan_backend.asgi:application -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000\n'\ 
+> /app/start.sh && chmod +x /app/start.sh
 
-# Copy the Supervisor configuration file
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+EXPOSE 80 8000
 
-# Expose port 80
-EXPOSE 80
-
-# Start Supervisor
-CMD ["/usr/bin/supervisord"]
+CMD ["/app/start.sh"]
