@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Driver GPS Tracking</title>
     <style>
-        /* Optional: Add some basic styling */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -48,8 +47,8 @@
                     startButton.disabled = true;
                     stopButton.disabled = false;
 
-                    // Start updating location every 5 seconds
-                    sendLocation(); // Send immediately
+                    // 5 seconds
+                    sendLocation();
                     trackingInterval = setInterval(sendLocation, 5000);
                 },
                 handleError,
@@ -74,7 +73,6 @@
 
                     statusDiv.textContent = `Current Position: Latitude ${latitude.toFixed(6)}, Longitude ${longitude.toFixed(6)}`;
 
-                    // Send data to backend
                     sendDataToBackend(latitude, longitude, speed, heading);
                 },
                 handleError,
@@ -96,7 +94,6 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Replace with actual authentication method
                     'Authorization': 'Token your_auth_token_here'
                 },
                 body: JSON.stringify(data)

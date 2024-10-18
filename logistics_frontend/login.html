@@ -133,7 +133,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
-        
         }
 
         button[type="submit"]:hover {
@@ -234,30 +233,44 @@
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(loginForm);
-            const data = Object.fromEntries(formData.entries());
-            
+            const inputData = Object.fromEntries(formData.entries());
+
             // Add user type to the data
             if (userToggle.classList.contains('active')) {
-                data.userType = 'user';
+                inputData.user_type = 'user';
             } else if (fleetToggle.classList.contains('active')) {
-                data.userType = 'fleet_owner';
+                inputData.user_type = 'fleet_owner';
             } else if (driverToggle.classList.contains('active')) {
-                data.userType = 'driver';
+                inputData.user_type = 'driver';
             }
+            
+            fetch('http://149.102.149.102:8000/api/v1/auth/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(inputData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Login successful');
 
-            console.log('Form submitted:', data);
-            // Here you would typically send the data to your backend
-            // For example:
-            // fetch('/api/login', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(data),
-            // })
-            // .then(response => response.json())
-            // .then(data => console.log('Success:', data))
-            // .catch((error) => console.error('Error:', error));
+                    localStorage.setItem('token', data.data.token);
+
+                    if (inputData.user_type === 'user') {
+                        window.location.href = 'user_dashboard.html'; // Change to your user dashboard
+                    } else if (inputData.user_type === 'fleet_owner') {
+                        window.location.href = 'fleet-owner-dashboard.html'; // Change to your fleet owner dashboard
+                    } else if (inputData.user_type === 'driver') {
+                        window.location.href = 'driver_dashboard.html'; // Change to your driver dashboard
+                    }
+
+                } else {
+                    alert(`Error: ${data.error.message}: ${data.error.details}`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </body>

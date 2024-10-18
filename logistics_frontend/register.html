@@ -268,7 +268,7 @@
             e.preventDefault();
             const formData = new FormData(registrationForm);
             const data = Object.fromEntries(formData.entries());
-            
+
             // Remove unnecessary fields based on user type
             if (!fleetToggle.classList.contains('active')) {
                 delete data.company_name;
@@ -277,19 +277,23 @@
                 delete data.license_number;
             }
 
-            console.log('Form submitted:', data);
-            // Here you would typically send the data to your backend
-            // For example:
-            // fetch('/api/register', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(data),
-            // })
-            // .then(response => response.json())
-            // .then(data => console.log('Success:', data))
-            // .catch((error) => console.error('Error:', error));
+            fetch('http://149.102.149.102/api/v1/auth/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Registration successful');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(`Error: ${data.error.message}: ${data.error.details}`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </body>

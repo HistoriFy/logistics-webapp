@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - LogiSwift</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --card-bg-color: #fff;
+            --input-bg-color: #fff;
+            --input-border-color: #ddd;
+        }
+
+        .dark-mode {
+            --primary-color: #4fa3d1;
+            --primary-dark: #3498db;
+            --bg-color: #1a1a1a;
+            --text-color: #f4f4f4;
+            --card-bg-color: #2c2c2c;
+            --input-bg-color: #3a3a3a;
+            --input-border-color: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--card-bg-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid var(--input-border-color);
+            text-align: left;
+        }
+
+        th:first-child, td:first-child {
+            border-left: none;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        tr:first-child th {
+            border-top: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.success {
+            background-color: #2ecc71;
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+                margin-right: 0;
+            }
+
+            .card {
+                overflow: auto;
+            }
+
+            .card > div {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .popup h2 {
+            margin-bottom: 20px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .payment-option:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .payment-option img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle" id="darkModeToggle">🌓</button>
+    <div class="container">
+        <h1>User Dashboard</h1>
+        <div class="tabs">
+            <button class="tab active" data-tab="orders">My Orders</button>
+            <button class="tab" data-tab="newOrder">New Order</button>
+        </div>
+
+        <div id="ordersTab" class="tab-content active">
+            <div class="card">
+                <h2>My Orders</h2>
+                <div>
+                    <table id="orderTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="map-container" style="margin-top: 20px; height: 300px;">
+                    <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+                <button id="refreshOrders">Refresh Orders</button>
+            </div>
+        </div>
+
+        <div id="newOrderTab" class="tab-content">
+            <div class="card">
+                <h2>Place New Order</h2>
+                <form id="newOrderForm">
+                    <div class="form-group">
+                        <label for="pickupAddress">Pickup Address</label>
+                        <textarea id="pickupAddress" name="pickupAddress" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryAddress">Delivery Address</label>
+                        <textarea id="deliveryAddress" name="deliveryAddress" required></textarea>
+                    </div>
+                    <button type="submit">Place Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="popupOverlay" class="popup-overlay">
+        <div class="popup">
+            <h2>Choose Payment Method</h2>
+            <div class="payment-option" data-method="cash">
+                <img src="https://cdn-icons-png.flaticon.com/128/2489/2489756.png" alt="Cash icon">
+                <span>Cash</span>
+            </div>
+            <div class="payment-option" data-method="upi">
+                <img src="https://cdn-icons-png.flaticon.com/128/4305/4305512.png" alt="UPI icon">
+                <span>UPI</span>
+            </div>
+            <div class="payment-option" data-method="card">
+                <img src="https://cdn-icons-png.flaticon.com/128/179/179457.png" alt="Card icon">
+                <span>Card</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        // Check for saved user preference and set initial mode
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        body.classList.toggle('dark-mode', isDarkMode);
+        updateDarkModeToggle(isDarkMode);
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            updateDarkModeToggle(isDark);
+        });
+
+        function updateDarkModeToggle(isDark) {
+            darkModeToggle.textContent = isDark ? '☀️' : '🌓';
+        }
+
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // Toast functionality
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+            }, 3000);
+        }
+
+
+        // Fetch orders
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/user-orders');
+                const data = await response.json();
+                const orderTable = document.getElementById('orderTable').getElementsByTagName('tbody')[0];
+                orderTable.innerHTML = '';
+                data.orders.forEach(order => {
+                    const row = orderTable.insertRow();
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${order.date}</td>
+                        <td>${order.status}</td>
+                        <td>$${order.total.toFixed(2)}</td>
+                        <td><button onclick="viewOrderDetails(${order.id})">View Details</button></td>
+                    `;
+                });
+            } catch (error) {
+                showToast('Failed to fetch orders', 'error');
+            }
+        }
+
+        // View order details (placeholder function)
+        function viewOrderDetails(orderId) {
+            showToast(`Viewing details for order ${orderId}`, 'success');
+            // Implement order details view logic here
+        }
+
+        // Place new order
+        document.getElementById('newOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const orderData = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData),
+                });
+                if (response.ok) {
+                    showPaymentPopup();
+                } else {
+                    throw new Error('Failed to place order');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        function showPaymentPopup() {
+            document.getElementById('popupOverlay').style.display = 'block';
+        }
+
+        // Handle payment option selection
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const method = option.getAttribute('data-method');
+                document.getElementById('popupOverlay').style.display = 'none';
+                showToast(`Order placed successfully. Payment method: ${method}`, 'success');
+            });
+        });
+
+        // Close popup when clicking outside
+        document.getElementById('popupOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('popupOverlay')) {
+                document.getElementById('popupOverlay').style.display = 'none';
+            }
+        });
+
+        // Refresh orders button
+        document.getElementById('refreshOrders').addEventListener('click', fetchOrders);
+
+        // Initial data fetch
+        fetchOrders();
+    </script>
+</body>
+</html>
