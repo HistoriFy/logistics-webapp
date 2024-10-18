@@ -1,14 +1,16 @@
 from celery import shared_task
+import after_response
 from time import sleep
 from django.conf import settings
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-import after_response
 
 from authentication.models import Driver
 from .models import Booking
+
 from utils.google_endpoints import PlaceRepository
+from driver.helpers import generate_random_location
 
 def notify_driver_about_booking(driver, booking):
     channel_layer = get_channel_layer()
@@ -53,6 +55,12 @@ def find_nearby_drivers(booking_id):
 
         available_drivers = Driver.objects.filter(status='available')
         found_driver = False
+        
+        if driver.current_latitude and driver.current_longitude is None:
+            driver.current_latitude, driver.current_longitude = generate_random_location(
+                booking.pickup_location.latitude, booking.pickup_location.longitude
+            )
+            driver.save()
 
         for driver in available_drivers:
             try:
@@ -92,6 +100,7 @@ def find_nearby_drivers(booking_id):
         booking.status = 'expired'
         booking.save()
         # print(f"Booking {booking.id} expired after {max_time / 60} minutes.")
+    
     
 
 # async def find_nearby_drivers_async(booking_id):
