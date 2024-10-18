@@ -274,7 +274,7 @@ class FetchAllPastBookingsView(APIView):
     @format_response
     def get(self, request):
         user = request.user
-        past_bookings = Booking.objects.filter(user=user, status__in=['completed', 'cancelled', 'expired']).order_by('-created_at')
+        past_bookings = Booking.objects.filter(user=user, status__in=['completed', 'cancelled', 'expired']).order_by('-booking_time')
         past_bookings_data = []
         
         for booking in past_bookings:
