@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fleet Owner Dashboard - LogiSwift</title>
     <style>
+
+        /* Hide the entire page content initially */
+        body {
+            display: none;
+        }
+
         :root {
             --primary-color: #3498db;
             --primary-dark: #2980b9;
@@ -440,7 +446,15 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // JWT Token for authorization (to be replaced with your actual token)
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+            } else {
+                document.body.style.display = 'block';
+                console.log('User is authenticated');
+            }
+        });
         const jwtToken = `Bearer ${localStorage.getItem('token')}`;
 
         // Dark mode toggle
