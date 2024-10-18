@@ -11,9 +11,11 @@ def generate_random_location(latitude, longitude, radius=settings.RANDOM_LOCATIO
     latitude = float(latitude)
     longitude = float(longitude)
     
+    # 1 radius = 111 Km
     radius_in_degrees = radius / 111000  # Convert meters to degrees
     u = random.random()
     v = random.random()
+    
     w = radius_in_degrees * math.sqrt(u)
     t = 2 * math.pi * v
     delta_lat = w * math.cos(t)
