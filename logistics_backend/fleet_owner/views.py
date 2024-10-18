@@ -285,6 +285,7 @@ class ViewDriversView(APIView):
             drivers = Driver.objects.filter(fleet_owner=fleet_owner)
             
 
+            vehicles = Vehicle.objects.filter(driver__in=drivers)
             driver_list = [
                 {
                     'driver_id': driver.id,
@@ -294,7 +295,7 @@ class ViewDriversView(APIView):
                     'license_number': driver.license_number,
                     'status': driver.status,
                     'availability_status': driver.availability_status,
-                    'vehicle': f"{driver.vehicle.make} {driver.vehicle.model}" if driver.vehicle else None,
+                    'vehicle': f"{vehicle.make} {vehicle.model}" if (vehicle := vehicles.filter(driver=driver).first()) else None,
                     'location': f"https://www.google.com/maps?q={driver.current_latitude},{driver.current_longitude}"
                     if driver.current_latitude and driver.current_longitude else None
                 }
