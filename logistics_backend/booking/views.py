@@ -265,3 +265,29 @@ class BookingCreateView(APIView):
     # @after_response.enable
     # def start_find_nearby_drivers_task(self, booking_id):
     #     find_nearby_drivers.delay(booking_id)
+    
+class FetchAllPastBookingsView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+    
+    @format_response
+    def get(self, request):
+        user = request.user
+        past_bookings = Booking.objects.filter(user=user, status__in=['completed', 'cancelled', 'expired']).order_by('-created_at')
+        past_bookings_data = []
+        
+        for booking in past_bookings:
+            past_bookings_data.append({
+                'booking_id': booking.id,
+                'vehicle_type': booking.vehicle_type.type_name if booking.vehicle_type else None,
+                'pickup_address': booking.pickup_location.address,
+                'dropoff_address': booking.dropoff_location.address,
+                'status': booking.status,
+                'estimated_cost': float(booking.estimated_cost),
+                'distance': booking.distance,
+                'scheduled_time': booking.scheduled_time,
+                'payment_method': booking.payment_method,
+                'created_at': booking.created_at
+            })
+            
+        return (past_bookings_data, 200)
