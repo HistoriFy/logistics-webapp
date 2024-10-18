@@ -55,15 +55,15 @@ def find_nearby_drivers(booking_id):
 
         available_drivers = Driver.objects.filter(status='available')
         found_driver = False
-        
-        if driver.current_latitude and driver.current_longitude is None:
-            driver.current_latitude, driver.current_longitude = generate_random_location(
-                booking.pickup_location.latitude, booking.pickup_location.longitude
-            )
-            driver.save()
 
         for driver in available_drivers:
             try:
+                if driver.current_latitude and driver.current_longitude is None:
+                    driver.current_latitude, driver.current_longitude = generate_random_location(
+                        booking.pickup_location.latitude, booking.pickup_location.longitude
+                    )
+                    driver.save()
+                    
                 distance_value, _ = place_repository.get_distance_and_time(
                     origin_lat=booking.pickup_location.latitude,
                     origin_lng=booking.pickup_location.longitude,
