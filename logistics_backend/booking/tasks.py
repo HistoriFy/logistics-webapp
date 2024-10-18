@@ -58,15 +58,15 @@ def find_nearby_drivers(booking_id):
 
         for driver in available_drivers:
             try:
-                if driver.current_latitude and driver.current_longitude is None:
+                if not driver.current_latitude and not driver.current_longitude:
                     driver.current_latitude, driver.current_longitude = generate_random_location(
                         booking.pickup_location.latitude, booking.pickup_location.longitude
                     )
                     driver.save()
-                
-                print(f"Driver {driver.id} is at {driver.current_latitude}, {driver.current_longitude}")
-                print(f"Calling get_distance_and_time for booking {booking.id} and driver {driver.id}")
-                print(f"Pickup location: {booking.pickup_location.latitude}, {booking.pickup_location.longitude}")
+
+                # print(f"Driver {driver.id} is at {driver.current_latitude}, {driver.current_longitude}")
+                # print(f"Calling get_distance_and_time for booking {booking.id} and driver {driver.id}")
+                # print(f"Pickup location: {booking.pickup_location.latitude}, {booking.pickup_location.longitude}")
                     
                 distance_value, _ = place_repository.get_distance_and_time(
                     origin_lat=booking.pickup_location.latitude,
