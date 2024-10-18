@@ -63,3 +63,6 @@ class DriverAvailableBookingsConsumer(AsyncWebsocketConsumer):
     async def available_booking_update(self, event):
         # Send message to WebSocket with booking updates
         await self.send(text_data=json.dumps(event['message']))
+    
+    async def vehicle_assignment_update(self, event):
+        await self.send(text_data=json.dumps(event['message']))

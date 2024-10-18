@@ -176,6 +176,19 @@ class DriverCancelBookingView(APIView):
             
             driver.status = 'available'
             driver.save()
+            
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{booking.user.id}_bookings",
+                {
+                    'type': 'booking_status_update',
+                    'message': {
+                        'status': 'cancelled',
+                        'booking_id': booking.id,
+                        'message': 'Booking has been cancelled by the driver.'
+                    }
+                }
+            )
 
             return ({'message': 'Booking cancelled successfully.'}, 200)
         
