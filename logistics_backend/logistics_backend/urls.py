@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/v1/driver/', include('driver.urls')),
     path('api/v1/regular_user/', include('regular_user.urls')),
     path('api/v1/booking/', include('booking.urls')),
+    path('api/v1/vehicle_type/', include('vehicle_type.urls')),
 ]
