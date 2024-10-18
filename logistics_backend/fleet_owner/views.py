@@ -2,9 +2,6 @@ from django.db import transaction
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
 
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-
 from .models import Vehicle
 from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSerializer, DeassignVehicleSerializer
 from .mixins import VehicleAssignmentMixin
@@ -126,6 +123,7 @@ class DeassignVehicleView(APIView, VehicleAssignmentMixin):
     permission_classes = [IsFleetOwner]
 
     @format_response
+    @transaction.atomic
     def post(self, request):
         serializer = DeassignVehicleSerializer(data=request.data)
         
@@ -160,6 +158,7 @@ class ViewDriversView(APIView):
         try:
             fleet_owner = FleetOwner.objects.get(email=request.user.email)
             drivers = Driver.objects.filter(fleet_owner=fleet_owner)
+            
 
             driver_list = [
                 {
@@ -170,6 +169,8 @@ class ViewDriversView(APIView):
                     'license_number': driver.license_number,
                     'status': driver.status,
                     'availability_status': driver.availability_status,
+                    'location': f"https://www.google.com/maps?q={driver.current_latitude},{driver.current_longitude}"
+                    if driver.current_latitude and driver.current_longitude else None
                 }
                 for driver in drivers
             ]
