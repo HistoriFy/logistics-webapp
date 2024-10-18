@@ -294,6 +294,7 @@ class ViewDriversView(APIView):
                     'license_number': driver.license_number,
                     'status': driver.status,
                     'availability_status': driver.availability_status,
+                    'vehicle': f"{driver.vehicle.make} {driver.vehicle.model}" if driver.vehicle else None,
                     'location': f"https://www.google.com/maps?q={driver.current_latitude},{driver.current_longitude}"
                     if driver.current_latitude and driver.current_longitude else None
                 }
