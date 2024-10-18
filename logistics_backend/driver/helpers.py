@@ -6,6 +6,11 @@ def generate_random_location(latitude, longitude, radius=settings.RANDOM_LOCATIO
     """
     Generate a random location within a radius (in meters) around a given lat/long.
     """
+    
+    #convert decimal.Decimal to float
+    latitude = float(latitude)
+    longitude = float(longitude)
+    
     radius_in_degrees = radius / 111000  # Convert meters to degrees
     u = random.random()
     v = random.random()
