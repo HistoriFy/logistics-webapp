@@ -63,6 +63,10 @@ def find_nearby_drivers(booking_id):
                         booking.pickup_location.latitude, booking.pickup_location.longitude
                     )
                     driver.save()
+                
+                print(f"Driver {driver.id} is at {driver.current_latitude}, {driver.current_longitude}")
+                print(f"Calling get_distance_and_time for booking {booking.id} and driver {driver.id}")
+                print(f"Pickup location: {booking.pickup_location.latitude}, {booking.pickup_location.longitude}")
                     
                 distance_value, _ = place_repository.get_distance_and_time(
                     origin_lat=booking.pickup_location.latitude,
