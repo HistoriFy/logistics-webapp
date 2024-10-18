@@ -10,12 +10,12 @@ from booking.serializers import BookingSerializer
 def send_booking_status_update(sender, instance, created, **kwargs):
     if not created:
         channel_layer = get_channel_layer()
-        group_name = f'user_{instance.user.id}_bookings'
+        group_name = f"user_{instance.user.id}_bookings"
 
         serializer = BookingSerializer(instance)
         message = {
-            'type': 'booking_status_update',
-            'message': serializer.data
+            "type": "booking_status_update",
+            "message": serializer.data
         }
 
         async_to_sync(channel_layer.group_send)(

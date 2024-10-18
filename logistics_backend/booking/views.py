@@ -28,16 +28,16 @@ from utils.google_endpoints import PlaceRepository
 class PlacePredictionView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsRegularUser]
-    
+
     @format_response
     def get(self, request):
         serializer = PlacePredictionSerializer(data=request.query_params)
         if serializer.is_valid():
-            query = serializer.validated_data['query']
+            query = serializer.validated_data["query"]
             place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
             try:
                 predictions = place_repository.get_places(query)
-                return ({'predictions': predictions}, 200)
+                return ({"predictions": predictions}, 200)
             except Exception as e:
                 raise BadRequest(str(e))
         else:
@@ -52,18 +52,18 @@ class PlaceLatLongView(APIView):
     def post(self, request):
         serializer = PlaceLatLongSerializer(data=request.data)
         if serializer.is_valid():
-            place_id = serializer.validated_data['place_id']
+            place_id = serializer.validated_data["place_id"]
             place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
 
             try:
                 lat, lng, place_type = place_repository.get_lat_lng_and_type_from_place_id(place_id)
 
                 return ({
-                    'latitude': lat,
-                    'longitude': lng,
-                    'place_type': place_type
+                    "latitude": lat,
+                    "longitude": lng,
+                    "place_type": place_type
                 }, 200)
-                
+
             except Exception as e:
                 raise BadRequest(str(e))
         else:
@@ -77,36 +77,36 @@ class LatLongPlaceTypeView(APIView):
     def post(self, request):
         serializer = LatLongPlaceTypeSerializer(data=request.data)
         if serializer.is_valid():
-            lat = serializer.validated_data['latitude']
-            lng = serializer.validated_data['longitude']
-            
+            lat = serializer.validated_data["latitude"]
+            lng = serializer.validated_data["longitude"]
+
             place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
 
             try:
                 place_id, location_name = place_repository.get_place_id_from_coordinates(lat, lng)
-                
+
                 return ({
-                    'place_id': place_id,
-                    'location_name': location_name
+                    "place_id": place_id,
+                    "location_name": location_name
                 }, 200)
-                
+
             except Exception as e:
                 raise BadRequest(str(e))
-            
+
         else:
             raise BadRequest(serializer.errors)
 
-class PriceEstimationView(APIView):  
+class PriceEstimationView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsRegularUser]
-    
+
     @format_response
     def post(self, request):
         serializer = PriceEstimationSerializer(data=request.data)
         if serializer.is_valid():
-            origin_place_id = serializer.validated_data['origin_place_id']
-            destination_place_id = serializer.validated_data['destination_place_id']
-            place_type_input = serializer.validated_data.get('place_type')
+            origin_place_id = serializer.validated_data["origin_place_id"]
+            destination_place_id = serializer.validated_data["destination_place_id"]
+            place_type_input = serializer.validated_data.get("place_type")
 
             place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
 
@@ -140,7 +140,7 @@ class PriceEstimationView(APIView):
                 for vehicle_type in vehicle_types:
                     pricing_model = PricingModel.objects.filter(vehicle_type=vehicle_type, region=region).first()
                     if not pricing_model:
-                        continue  
+                        continue
 
                     estimated_cost = (pricing_model.base_fare +
                                       (pricing_model.per_km_rate * Decimal(distance_in_km)) +
@@ -148,27 +148,27 @@ class PriceEstimationView(APIView):
                     estimated_cost *= pricing_model.surge_multiplier
 
                     price_estimations.append({
-                        'vehicle_type_id': vehicle_type.vehicle_type_id,
-                        'vehicle_type': vehicle_type.type_name,
-                        'vehicle_weight': vehicle_type.capacity,
-                        'vehicle_dimensions': vehicle_type.description,
-                        'vehicle_image_url': vehicle_type.image_url,
-                        'estimated_cost': float(round(estimated_cost, 2)),
-                        'currency': 'INR'
+                        "vehicle_type_id": vehicle_type.vehicle_type_id,
+                        "vehicle_type": vehicle_type.type_name,
+                        "vehicle_weight": vehicle_type.capacity,
+                        "vehicle_dimensions": vehicle_type.description,
+                        "vehicle_image_url": vehicle_type.image_url,
+                        "estimated_cost": float(round(estimated_cost, 2)),
+                        "currency": "INR"
                     })
 
                 return ({
-                    'origin_place_id': origin_place_id,
-                    'origin_place_type': origin_place_type,
-                    'origin_latitude': origin_lat,
-                    'origin_longitude': origin_lng,
-                    'destination_place_id': destination_place_id,
-                    'destination_latitude': destination_lat,
-                    'destination_longitude': destination_lng,
-                    'destination_place_type': destination_place_type,
-                    'distance': round(distance_in_km, 2),
-                    'estimated_duration_seconds': estimated_duration_seconds,
-                    'price_estimations': price_estimations
+                    "origin_place_id": origin_place_id,
+                    "origin_place_type": origin_place_type,
+                    "origin_latitude": origin_lat,
+                    "origin_longitude": origin_lng,
+                    "destination_place_id": destination_place_id,
+                    "destination_latitude": destination_lat,
+                    "destination_longitude": destination_lng,
+                    "destination_place_type": destination_place_type,
+                    "distance": round(distance_in_km, 2),
+                    "estimated_duration_seconds": estimated_duration_seconds,
+                    "price_estimations": price_estimations
                 }, 200)
 
             except Exception as e:
@@ -187,23 +187,23 @@ class BookingCreateView(APIView):
         if serializer.is_valid():
             user = request.user
             try:
-                vehicle_type = VehicleType.objects.get(vehicle_type_id=serializer.validated_data['vehicle_type_id'])
+                vehicle_type = VehicleType.objects.get(vehicle_type_id=serializer.validated_data["vehicle_type_id"])
             except VehicleType.DoesNotExist:
-                raise BadRequest('Invalid vehicle type ID')
+                raise BadRequest("Invalid vehicle type ID")
 
             pickup_location = Location.objects.create(
-                address=serializer.validated_data['pickup_address'],
-                latitude=serializer.validated_data['pickup_latitude'],
-                longitude=serializer.validated_data['pickup_longitude'],
-                place_name=serializer.validated_data['pickup_address'],
-                location_type='pickup'
+                address=serializer.validated_data["pickup_address"],
+                latitude=serializer.validated_data["pickup_latitude"],
+                longitude=serializer.validated_data["pickup_longitude"],
+                place_name=serializer.validated_data["pickup_address"],
+                location_type="pickup"
             )
             dropoff_location = Location.objects.create(
-                address=serializer.validated_data['dropoff_address'],
-                latitude=serializer.validated_data['dropoff_latitude'],
-                longitude=serializer.validated_data['dropoff_longitude'],
-                place_name=serializer.validated_data['dropoff_address'],
-                location_type='dropoff'
+                address=serializer.validated_data["dropoff_address"],
+                latitude=serializer.validated_data["dropoff_latitude"],
+                longitude=serializer.validated_data["dropoff_longitude"],
+                place_name=serializer.validated_data["dropoff_address"],
+                location_type="dropoff"
             )
 
             place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
@@ -223,7 +223,7 @@ class BookingCreateView(APIView):
             try:
                 pricing_model = PricingModel.objects.get(vehicle_type=vehicle_type)
             except PricingModel.DoesNotExist:
-                raise BadRequest('Pricing model not found for the selected vehicle type')
+                raise BadRequest("Pricing model not found for the selected vehicle type")
 
             # costlier during afternoon in surge pricing. cheaper during night
             # costlier in cities, cheaper in rural areas
@@ -237,12 +237,12 @@ class BookingCreateView(APIView):
                 vehicle_type=vehicle_type,
                 pickup_location=pickup_location,
                 dropoff_location=dropoff_location,
-                status='pending',
+                status="pending",
                 estimated_cost=estimated_cost,
                 distance=distance_in_km,
-                payment_method=serializer.validated_data['payment_method'],
+                payment_method=serializer.validated_data["payment_method"],
                 estimated_duration=estimated_duration,
-                scheduled_time=serializer.validated_data.get('scheduled_time', None),
+                scheduled_time=serializer.validated_data.get("scheduled_time", None),
                 pricing=pricing_model
             )
 
@@ -251,25 +251,25 @@ class BookingCreateView(APIView):
             async_to_sync(channel_layer.group_send)(
                 f"user_{booking.user.id}_bookings",
                 {
-                    'type': 'booking_status_update',
-                    'message': BookingSerializer(booking).data
+                    "type": "booking_status_update",
+                    "message": BookingSerializer(booking).data
                 }
             )
 
             response_data = {
-                'booking_id': booking.id,
-                'estimated_cost': float(booking.estimated_cost),
-                'distance': booking.distance,
-                'estimated_duration': estimated_duration_seconds,
-                'status': booking.status
+                "booking_id": booking.id,
+                "estimated_cost": float(booking.estimated_cost),
+                "distance": booking.distance,
+                "estimated_duration": estimated_duration_seconds,
+                "status": booking.status
             }
 
             #algorithm task call using django-after-response
             # find_nearby_drivers.after_response(booking.id)
-            
+
             #algorithm task call using celery
             find_nearby_drivers.delay(booking.id)
-            
+
             #driver simulation task call
             simulate_row = SimulationStatus.objects.first()
             if simulate_row.simulation_status == True:
@@ -280,30 +280,30 @@ class BookingCreateView(APIView):
 
         else:
             raise BadRequest(serializer.errors)
-        
-    
+
+
 class FetchAllPastBookingsView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsRegularUser]
-    
+
     @format_response
     def get(self, request):
         user = request.user
-        past_bookings = Booking.objects.filter(user=user, status__in=['completed', 'cancelled', 'expired']).order_by('-booking_time')
+        past_bookings = Booking.objects.filter(user=user, status__in=["completed", "cancelled", "expired"]).order_by("-booking_time")
         past_bookings_data = []
-        
+
         for booking in past_bookings:
             past_bookings_data.append({
-                'booking_id': booking.id,
-                'vehicle_type': booking.vehicle_type.type_name if booking.vehicle_type else None,
-                'pickup_address': booking.pickup_location.address,
-                'dropoff_address': booking.dropoff_location.address,
-                'status': booking.status,
-                'estimated_cost': float(booking.estimated_cost),
-                'distance': booking.distance,
-                'scheduled_time': booking.scheduled_time,
-                'payment_method': booking.payment_method,
-                'created_at': booking.booking_time
+                "booking_id": booking.id,
+                "vehicle_type": booking.vehicle_type.type_name if booking.vehicle_type else None,
+                "pickup_address": booking.pickup_location.address,
+                "dropoff_address": booking.dropoff_location.address,
+                "status": booking.status,
+                "estimated_cost": float(booking.estimated_cost),
+                "distance": booking.distance,
+                "scheduled_time": booking.scheduled_time,
+                "payment_method": booking.payment_method,
+                "created_at": booking.booking_time
             })
-            
+
         return (past_bookings_data, 200)

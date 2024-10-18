@@ -11,32 +11,32 @@ from utils.exceptions import BadRequest, Unauthorized
 
 
 class RegisterView(APIView):
-    
+
     @format_response
     @transaction.atomic
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        
+
         if not serializer.is_valid():
             raise BadRequest(serializer.errors)
 
-        user_type = serializer.validated_data['user_type']
-        email = serializer.validated_data['email']
-        phone = serializer.validated_data['phone']
-        name = serializer.validated_data['name']
-        password = make_password(serializer.validated_data['password'])
+        user_type = serializer.validated_data["user_type"]
+        email = serializer.validated_data["email"]
+        phone = serializer.validated_data["phone"]
+        name = serializer.validated_data["name"]
+        password = make_password(serializer.validated_data["password"])
 
-        if user_type == 'user':
+        if user_type == "user":
             user = User.objects.create(
                 name=name,
                 email=email,
                 phone=phone,
                 password=password
             )
-            user_type = 'User'
-            
-        elif user_type == 'driver':
-            license_number = serializer.validated_data['license_number']
+            user_type = "User"
+
+        elif user_type == "driver":
+            license_number = serializer.validated_data["license_number"]
             user = Driver.objects.create(
                 name=name,
                 email=email,
@@ -44,10 +44,10 @@ class RegisterView(APIView):
                 password=password,
                 license_number=license_number
             )
-            user_type = 'Driver'
-            
-        elif user_type == 'fleet_owner':
-            company_name = serializer.validated_data['company_name']
+            user_type = "Driver"
+
+        elif user_type == "fleet_owner":
+            company_name = serializer.validated_data["company_name"]
             user = FleetOwner.objects.create(
                 name=name,
                 email=email,
@@ -55,45 +55,45 @@ class RegisterView(APIView):
                 password=password,
                 company_name=company_name
             )
-            user_type = 'FleetOwner'
-            
+            user_type = "FleetOwner"
+
         else:
             raise BadRequest("Invalid user type.")
 
         token = generate_jwt_token(user, user_type.capitalize())
 
         return ({
-            'token': token,
-            'message': 'Registration successful',
-            'user_id': user.id
+            "token": token,
+            "message": "Registration successful",
+            "user_id": user.id
         }, 201)
 
 
 class LoginView(APIView):
-    
+
     @format_response
     @transaction.atomic
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             raise BadRequest(serializer.errors)
-        
-        user_type = serializer.validated_data['user_type']
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
 
-        if user_type == 'user':
+        user_type = serializer.validated_data["user_type"]
+        email = serializer.validated_data["email"]
+        password = serializer.validated_data["password"]
+
+        if user_type == "user":
             user = User.objects.filter(email=email).first()
-            user_type = 'User'
-            
-        elif user_type == 'driver':
+            user_type = "User"
+
+        elif user_type == "driver":
             user = Driver.objects.filter(email=email).first()
-            user_type = 'Driver'
-            
-        elif user_type == 'fleet_owner':
+            user_type = "Driver"
+
+        elif user_type == "fleet_owner":
             user = FleetOwner.objects.filter(email=email).first()
-            user_type = 'FleetOwner'
-            
+            user_type = "FleetOwner"
+
         else:
             raise BadRequest("Invalid user type.")
 
@@ -101,9 +101,9 @@ class LoginView(APIView):
             token = generate_jwt_token(user, user_type)
 
             return ({
-                'token': token,
-                'message': 'Login successful'
+                "token": token,
+                "message": "Login successful"
             }, 200)
-            
+
         else:
             raise Unauthorized("Invalid credentials.")

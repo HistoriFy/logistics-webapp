@@ -6,7 +6,7 @@ from vehicle_type.models import VehicleType
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = '__all__'
+        fields = "__all__"
 
 class BookingSerializer(serializers.ModelSerializer):
     pickup_location = LocationSerializer()
@@ -14,16 +14,16 @@ class BookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = "__all__"
 
 class PlacePredictionSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)
-    
+
 class PriceEstimationSerializer(serializers.Serializer):
     origin_place_id = serializers.CharField(max_length=255)
     destination_place_id = serializers.CharField(max_length=255)
     place_type = serializers.ChoiceField(
-        choices=[('city', 'City'), ('town', 'Town'), ('village', 'Village')],
+        choices=[("city", "City"), ("town", "Town"), ("village", "Village")],
         required=False
     )
 
@@ -39,12 +39,12 @@ class PlaceLatLongSerializer(serializers.Serializer):
 class LatLongPlaceTypeSerializer(serializers.Serializer):
     latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
     longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
-    
+
     def validate_latitude(self, value):
         if value < -90 or value > 90:
             raise serializers.ValidationError("Latitude must be between -90 and 90.")
         return value
-    
+
     def validate_longitude(self, value):
         if value < -180 or value > 180:
             raise serializers.ValidationError("Longitude must be between -180 and 180.")
@@ -71,7 +71,7 @@ class BookingCreateSerializer(serializers.Serializer):
 
     def validate(self, data):
         # Ensure pickup and dropoff locations are not the same
-        if (data['pickup_latitude'] == data['dropoff_latitude'] and
-                data['pickup_longitude'] == data['dropoff_longitude']):
+        if (data["pickup_latitude"] == data["dropoff_latitude"] and
+                data["pickup_longitude"] == data["dropoff_longitude"]):
             raise serializers.ValidationError("Pickup and dropoff locations cannot be the same.")
         return data

@@ -13,8 +13,8 @@ class Region(models.Model):
 
 class PricingModel(models.Model):
     pricing_id = models.AutoField(primary_key=True)
-    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE, related_name='pricing_models')
-    region = models.ForeignKey('Region', on_delete=models.CASCADE, related_name='pricing_models')
+    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE, related_name="pricing_models")
+    region = models.ForeignKey("Region", on_delete=models.CASCADE, related_name="pricing_models")
     base_fare = models.DecimalField(max_digits=10, decimal_places=2)
     per_km_rate = models.DecimalField(max_digits=10, decimal_places=2)
     per_minute_rate = models.DecimalField(max_digits=10, decimal_places=2)
@@ -27,8 +27,8 @@ class PricingModel(models.Model):
 
 class SurgePricing(models.Model):
     surge_pricing_id = models.AutoField(primary_key=True)
-    region = models.ForeignKey('Region', on_delete=models.CASCADE, related_name='surge_pricings')
-    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE, related_name='surge_pricings')
+    region = models.ForeignKey("Region", on_delete=models.CASCADE, related_name="surge_pricings")
+    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE, related_name="surge_pricings")
     surge_multiplier = models.DecimalField(max_digits=4, decimal_places=2)
     start_time = models.TimeField()
     end_time = models.TimeField()

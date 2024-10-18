@@ -5,11 +5,11 @@ from vehicle_type.models import VehicleType
 from pricing_model.models import PricingModel
 
 class Location(models.Model):
-    PICKUP = 'pickup'
-    DROPOFF = 'dropoff'
+    PICKUP = "pickup"
+    DROPOFF = "dropoff"
     LOCATION_TYPE_CHOICES = [
-        (PICKUP, 'Pickup'),
-        (DROPOFF, 'Dropoff'),
+        (PICKUP, "Pickup"),
+        (DROPOFF, "Dropoff"),
     ]
 
     address = models.CharField(max_length=255)
@@ -23,25 +23,25 @@ class Location(models.Model):
 
 class Booking(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('on_trip', 'On Trip'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-        ('expired', 'Expired'),
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("on_trip", "On Trip"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+        ("expired", "Expired"),
     ]
 
-    user = models.ForeignKey('authentication.User', on_delete=models.CASCADE)
-    driver = models.ForeignKey('authentication.Driver', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey("authentication.User", on_delete=models.CASCADE)
+    driver = models.ForeignKey("authentication.Driver", on_delete=models.SET_NULL, null=True, blank=True)
     vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE)
-    pickup_location = models.ForeignKey(Location, related_name='pickup_bookings', on_delete=models.CASCADE)
-    dropoff_location = models.ForeignKey(Location, related_name='dropoff_bookings', on_delete=models.CASCADE)
+    pickup_location = models.ForeignKey(Location, related_name="pickup_bookings", on_delete=models.CASCADE)
+    dropoff_location = models.ForeignKey(Location, related_name="dropoff_bookings", on_delete=models.CASCADE)
     pricing = models.ForeignKey(PricingModel, on_delete=models.SET_NULL, null=True, blank=True)
     booking_time = models.DateTimeField(auto_now_add=True)
     scheduled_time = models.DateTimeField(null=True, blank=True)
     pickup_time = models.DateTimeField(null=True, blank=True)
     dropoff_time = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     estimated_cost = models.DecimalField(max_digits=10, decimal_places=2)
     actual_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     distance = models.FloatField()

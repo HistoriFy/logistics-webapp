@@ -6,7 +6,7 @@ from driver.routing import websocket_urlpatterns as driver_websocket_urlpatterns
 from utils.regular_user_middleware import JWTAuthMiddleware
 from utils.driver_middleware import DriverJWTAuthMiddleware
 
-def print_paths(urlpatterns, prefix=''):
+def print_paths(urlpatterns, prefix=""):
     for pattern in urlpatterns:
         print(f"{prefix}{pattern.pattern}")
 
@@ -19,9 +19,9 @@ driver_application = DriverJWTAuthMiddleware(
 )
 
 application = ProtocolTypeRouter({
-    'websocket': URLRouter([
-        re_path(r'^regular_user/', regular_user_application),
-        re_path(r'^driver/', driver_application),
+    "websocket": URLRouter([
+        re_path(r"^regular_user/", regular_user_application),
+        re_path(r"^driver/", driver_application),
     ]),
 })
 

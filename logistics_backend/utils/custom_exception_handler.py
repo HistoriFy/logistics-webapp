@@ -16,7 +16,7 @@ def custom_exception_handler_function(exc, context):
             "error": {
                 "code": response.status_code,
                 "message": exc.__class__.__name__,
-                "details": str(exc.detail) if hasattr(exc, 'detail') else str(exc)
+                "details": str(exc.detail) if hasattr(exc, "detail") else str(exc)
             }
         }, status=response.status_code)
 

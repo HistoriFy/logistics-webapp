@@ -10,10 +10,10 @@ from rest_framework import serializers
 from utils.exceptions import BadRequest
 
 
-'''
+"""
 ---DECORATOR---
 Used to validate the token in the request headers
-'''
+"""
 ## Deprecated: custom_jwt_gen and custom_jwt_auth are used instead
 
 
@@ -63,28 +63,28 @@ Used to validate the token in the request headers
 #                     success=False,
 #                     message='An error occurred',
 #                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#                     error=e 
+#                     error=e
 #                 )
 
 #         return wrapper_func
 #     return decorator
 
-def response_obj(success=True, message='', status_code=200, data=None, error=''):
+def response_obj(success=True, message="", status_code=200, data=None, error=""):
     data = {
         "success": success,
         "message": message,
         "data": data if data else {}
     }
     if error:
-        data['error'] = str(error)
-    
+        data["error"] = str(error)
+
     return Response(data, status=status_code)
 
-       
-def response_obj(success=True, message='', status_code=200, data={}, error=''):
-    if(not error == ''):
+
+def response_obj(success=True, message="", status_code=200, data={}, error=""):
+    if(not error == ""):
         print_exc(error)
-        
+
     data = {
         "success": success,
         "message": message,
@@ -93,43 +93,43 @@ def response_obj(success=True, message='', status_code=200, data={}, error=''):
     return Response(data, status=status_code)
 
 
-'''
+"""
 Get the value of a key from a serializer's validated data
 Used to ensure that we get a default value if the key is not present in the validated data
-''' 
-def get_serialized_data(serializer, key, default=''):
+"""
+def get_serialized_data(serializer, key, default=""):
     if key in serializer.validated_data:
         return serializer.validated_data[key]
     return default
 
 
-'''
+"""
 ---DECORATOR---
 When wrapped on a function in a view, one can simply return a dictionary or a tuple of dictionary and status code
-'''
+"""
 def format_response(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
-            
+
         if isinstance(result, Exception):
             raise result
         try:
             if isinstance(result, tuple) and len(result) == 2:
                 response_body, status_code = result
                 return APIResponse(data=response_body, status_code=status_code).response()
-            
+
             return APIResponse(data=result).response()
-        
+
         except Exception as e:
             return APIResponse(success=False, status_code=500, error=e).response()
-    
+
     return wrapper
 
 
-'''
+"""
 Custom Response Class to format the response in a consistent manner
-'''
+"""
 class APIResponse:
     def __init__(self, success: bool = True, status_code: int = 200, data: Optional[Dict[str, Any]] = None, error: Optional[Exception] = None):
         self.success = success
@@ -137,7 +137,7 @@ class APIResponse:
         self.data = data or {}
         self.error = error
 
-    def response(self, correlation_id: Optional[str] = None) -> JsonResponse:   
+    def response(self, correlation_id: Optional[str] = None) -> JsonResponse:
         response_data: Dict[str, Any] = {
             "success": self.success,
             "data": self.data
@@ -146,7 +146,7 @@ class APIResponse:
         if self.error:
             response_data["error"] = {
                 "code": self.error.__class__.__name__,
-                "message": str(self.error.message) if hasattr(self.error, "message") else 'An error occurred',
+                "message": str(self.error.message) if hasattr(self.error, "message") else "An error occurred",
                 "details": str(self.error.details) if hasattr(self.error, "details") else str(self.error)
             }
         else :
@@ -167,9 +167,9 @@ class APIResponse:
 
 
 
-'''
+"""
 Custom Serializer class to inherit from to handle validation errors
-'''
+"""
 class BaseSerializer(serializers.Serializer):
     def to_internal_value(self, data):
         try:

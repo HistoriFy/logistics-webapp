@@ -4,14 +4,14 @@ from .models import User, Driver, FleetOwner
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-    user_type = serializers.ChoiceField(choices=[('user', 'User'), ('driver', 'Driver'), ('fleet_owner', 'FleetOwner')])
+    user_type = serializers.ChoiceField(choices=[("user", "User"), ("driver", "Driver"), ("fleet_owner", "FleetOwner")])
 
 class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     phone = serializers.CharField(max_length=15)
     password = serializers.CharField(write_only=True)
-    user_type = serializers.ChoiceField(choices=[('user', 'User'), ('driver', 'Driver'), ('fleet_owner', 'FleetOwner')])
+    user_type = serializers.ChoiceField(choices=[("user", "User"), ("driver", "Driver"), ("fleet_owner", "FleetOwner")])
     license_number = serializers.CharField(max_length=255, required=False)
     company_name = serializers.CharField(max_length=255, required=False)
 
@@ -26,9 +26,9 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
-        user_type = data.get('user_type')
-        if user_type == 'driver' and not data.get('license_number'):
-            raise serializers.ValidationError({'license_number': 'This field is required for drivers.'})
-        if user_type == 'fleet_owner' and not data.get('company_name'):
-            raise serializers.ValidationError({'company_name': 'This field is required for fleet owners.'})
+        user_type = data.get("user_type")
+        if user_type == "driver" and not data.get("license_number"):
+            raise serializers.ValidationError({"license_number": "This field is required for drivers."})
+        if user_type == "fleet_owner" and not data.get("company_name"):
+            raise serializers.ValidationError({"company_name": "This field is required for fleet owners."})
         return data

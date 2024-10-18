@@ -2,8 +2,8 @@ from django.db import models
 
 class GPSTracking(models.Model):
     tracking_id = models.AutoField(primary_key=True)
-    driver = models.ForeignKey('authentication.Driver', on_delete=models.CASCADE)
-    booking = models.ForeignKey('booking.Booking', on_delete=models.SET_NULL, null=True, blank=True)
+    driver = models.ForeignKey("authentication.Driver", on_delete=models.CASCADE)
+    booking = models.ForeignKey("booking.Booking", on_delete=models.SET_NULL, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=7)
     longitude = models.DecimalField(max_digits=9, decimal_places=7)
