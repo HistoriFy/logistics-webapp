@@ -18,7 +18,7 @@ from utils.exceptions import Unauthorized, BadRequest
 from utils.helpers import format_response
 
 
-class AssignVehicleView(APIView, VehicleAssignmentMixin):
+class AddDriverView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsFleetOwner]
 
@@ -26,29 +26,22 @@ class AssignVehicleView(APIView, VehicleAssignmentMixin):
     @transaction.atomic
     def post(self, request):
         try:
-            fleet_owner = self.get_fleet_owner(request)
-            serializer = AssignVehicleSerializer(data=request.data)
+            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            serializer = DriverSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            driver, vehicle = self.validate_driver_and_vehicle(
-                fleet_owner, 
-                serializer.validated_data['driver_id'], 
-                serializer.validated_data['vehicle_id']
+            driver = Driver(
+                email=serializer.validated_data['email'],
+                name=serializer.validated_data['name'],
+                phone=serializer.validated_data['phone'],
+                password=make_password(serializer.validated_data['password']),
+                license_number=serializer.validated_data['license_number'],
+                fleet_owner=fleet_owner,
+                availability_status=True
             )
+            driver.save()
 
-            if vehicle.driver:
-                raise BadRequest('Vehicle is already assigned to another driver.')
-            if driver.status == 'on_trip':
-                raise BadRequest('Driver is on trip. Cannot assign vehicle.')
-            if not driver.availability_status:
-                raise BadRequest('Driver is not available. Cannot assign vehicle.')
-
-            self.send_vehicle_assignment_update(driver, vehicle, 'vehicle_assigned')
-
-            vehicle.driver = driver
-            vehicle.save()
-
-            return {'message': 'Vehicle assigned to driver successfully.'}, 200
+            return ({'message': 'Driver added successfully.'}, 201)
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
@@ -90,70 +83,49 @@ class AddVehicleView(APIView):
             raise BadRequest(str(e))
 
 
-class AssignVehicleView(APIView):
+class AssignVehicleView(APIView, VehicleAssignmentMixin):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsFleetOwner]
-    
+
     @format_response
     @transaction.atomic
     def post(self, request):
         try:
-            fleet_owner = request.user
+            fleet_owner = self.get_fleet_owner(request)
             serializer = AssignVehicleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            driver = Driver.objects.get(pk=serializer.validated_data['driver_id'])
-            vehicle = Vehicle.objects.get(pk=serializer.validated_data['vehicle_id'])
+            driver, vehicle = self.validate_driver_and_vehicle(
+                fleet_owner, 
+                serializer.validated_data['driver_id'], 
+                serializer.validated_data['vehicle_id']
+            )
 
-            if driver.fleet_owner != fleet_owner:
-                raise Unauthorized('Driver does not belong to you.')
-            if vehicle.fleet_owner != fleet_owner:
-                raise Unauthorized('Vehicle does not belong to you.')
-            
             if vehicle.driver:
                 raise BadRequest('Vehicle is already assigned to another driver.')
-            
             if driver.status == 'on_trip':
                 raise BadRequest('Driver is on trip. Cannot assign vehicle.')
-            
-            if driver.availability_status == False:
+            if not driver.availability_status:
                 raise BadRequest('Driver is not available. Cannot assign vehicle.')
-            
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"driver_{driver.id}_available_bookings",
-                {
-                    'type': 'vehicle_assignment_update',
-                    'message': {
-                        'status': 'vehicle_assigned',
-                        'vehicle_id': vehicle.vehicle_id,
-                        'license_plate': vehicle.license_plate,
-                        'vehicle_type': vehicle.vehicle_type.type_name,
-                        'capacity': vehicle.capacity,
-                        'make': vehicle.make,
-                        'model': vehicle.model,
-                        'year': vehicle.year,
-                        'color': vehicle.color,
-                    }
-                }
-            )
+
+            self.send_vehicle_assignment_update(driver, vehicle, 'vehicle_assigned')
 
             vehicle.driver = driver
             vehicle.save()
 
-            return ({'message': 'Vehicle assigned to driver successfully.'}, 200)
+            return {'message': 'Vehicle assigned to driver successfully.'}, 200
 
         except FleetOwner.DoesNotExist:
             raise Unauthorized('You are not authorized to perform this action.')
         except Exception as e:
             raise BadRequest(str(e))
 
+
 class DeassignVehicleView(APIView, VehicleAssignmentMixin):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsFleetOwner]
 
     @format_response
-    @transaction.atomic
     def post(self, request):
         serializer = DeassignVehicleSerializer(data=request.data)
         
@@ -177,7 +149,7 @@ class DeassignVehicleView(APIView, VehicleAssignmentMixin):
             return {'message': f'Driver {driver.id} has been de-assigned from vehicle {vehicle.vehicle_id}'}, 200
         else:
             raise BadRequest(serializer.errors)
-        
+
 
 class ViewDriversView(APIView):
     authentication_classes = [CustomJWTAuthentication]
