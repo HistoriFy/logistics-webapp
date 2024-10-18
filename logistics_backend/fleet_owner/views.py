@@ -2,10 +2,6 @@ from django.db import transaction
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
 
-from .models import Vehicle
-from .serializers import DriverSerializer, VehicleSerializer, AssignVehicleSerializer, DeassignVehicleSerializer
-from .mixins import VehicleAssignmentMixin
-
 from authentication.models import Driver, FleetOwner
 from vehicle_type.models import VehicleType
 
@@ -13,6 +9,13 @@ from utils.custom_jwt_auth import CustomJWTAuthentication, IsFleetOwner
 
 from utils.exceptions import Unauthorized, BadRequest
 from utils.helpers import format_response
+
+from .models import Vehicle
+from .mixins import VehicleAssignmentMixin
+from .serializers import (DriverSerializer, VehicleSerializer,
+                          AssignVehicleSerializer, DeassignVehicleSerializer, 
+                          DeleteDriverSerializer, UpdateDriverSerializer,
+                          UpdateVehicleSerializer)
 
 
 class AddDriverView(APIView):
@@ -23,7 +26,7 @@ class AddDriverView(APIView):
     @transaction.atomic
     def post(self, request):
         try:
-            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            fleet_owner = request.user
             serializer = DriverSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
@@ -45,6 +48,128 @@ class AddDriverView(APIView):
         except Exception as e:
             raise BadRequest(str(e))
 
+class DeleteDriverView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        try:
+            fleet_owner = request.user
+            serializer = DeleteDriverSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                raise BadRequest(serializer.errors)
+            
+            driver_id = serializer.validated_data['driver_id']
+            driver = Driver.objects.get(pk=driver_id)
+
+            if driver.fleet_owner != fleet_owner:
+                raise Unauthorized('You are not authorized to perform this action.')
+
+            driver.delete()
+
+            return ({'message': 'Driver deleted successfully.'}, 200)
+
+        except FleetOwner.DoesNotExist:
+            raise Unauthorized('You are not authorized to perform this action.')
+        except Driver.DoesNotExist:
+            raise BadRequest('Driver does not exist.')
+        except Exception as e:
+            raise BadRequest(str(e))
+
+class DeleteVehicleView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        try:
+            fleet_owner = request.user
+            vehicle_id = request.data.get('vehicle_id')
+            vehicle = Vehicle.objects.get(pk=vehicle_id)
+
+            if vehicle.fleet_owner != fleet_owner:
+                raise Unauthorized('You are not authorized to perform this action.')
+
+            vehicle.delete()
+
+            return ({'message': 'Vehicle deleted successfully.'}, 200)
+
+        except FleetOwner.DoesNotExist:
+            raise Unauthorized('You are not authorized to perform this action.')
+        except Vehicle.DoesNotExist:
+            raise BadRequest('Vehicle does not exist.')
+        except Exception as e:
+            raise BadRequest(str(e))
+
+class UpdateDriverView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        try:
+            fleet_owner = request.user
+            serializer = UpdateDriverSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            driver = Driver.objects.get(pk=serializer.validated_data['driver_id'])
+
+            if driver.fleet_owner != fleet_owner:
+                raise Unauthorized('You are not authorized to perform this action.')
+
+            driver.name = serializer.validated_data['name']
+            driver.email = serializer.validated_data['email']
+            driver.phone = serializer.validated_data['phone']
+            driver.license_number = serializer.validated_data['license_number']
+            driver.save()
+
+            return ({'message': 'Driver updated successfully.'}, 200)
+
+        except FleetOwner.DoesNotExist:
+            raise Unauthorized('You are not authorized to perform this action.')
+        except Driver.DoesNotExist:
+            raise BadRequest('Driver does not exist.')
+        except Exception as e:
+            raise BadRequest(str(e))
+        
+class UpdateVehicleView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsFleetOwner]
+
+    @format_response
+    @transaction.atomic
+    def post(self, request):
+        try:
+            fleet_owner = request.user
+            serializer = UpdateVehicleSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            vehicle = Vehicle.objects.get(pk=serializer.validated_data['vehicle_id'])
+
+            if vehicle.fleet_owner != fleet_owner:
+                raise Unauthorized('You are not authorized to perform this action.')
+
+            vehicle.license_plate = serializer.validated_data['license_plate']
+            vehicle.capacity = serializer.validated_data['capacity']
+            vehicle.make = serializer.validated_data['make']
+            vehicle.model = serializer.validated_data['model']
+            vehicle.year = serializer.validated_data['year']
+            vehicle.color = serializer.validated_data['color']
+            vehicle.save()
+
+            return ({'message': 'Vehicle updated successfully.'}, 200)
+
+        except FleetOwner.DoesNotExist:
+            raise Unauthorized('You are not authorized to perform this action.')
+        except Vehicle.DoesNotExist:
+            raise BadRequest('Vehicle does not exist.')
+        except Exception as e:
+            raise BadRequest(str(e))
 
 class AddVehicleView(APIView):
     authentication_classes = [CustomJWTAuthentication]
@@ -54,7 +179,7 @@ class AddVehicleView(APIView):
     @transaction.atomic
     def post(self, request):
         try:
-            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            fleet_owner = request.user
             serializer = VehicleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
@@ -156,7 +281,7 @@ class ViewDriversView(APIView):
     @format_response
     def get(self, request):
         try:
-            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            fleet_owner = request.user
             drivers = Driver.objects.filter(fleet_owner=fleet_owner)
             
 
@@ -190,7 +315,7 @@ class ViewVehiclesView(APIView):
     @format_response
     def get(self, request):
         try:
-            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            fleet_owner = request.user
             vehicles = Vehicle.objects.filter(fleet_owner=fleet_owner)
 
             vehicle_list = [
@@ -222,7 +347,7 @@ class ViewVehiclesByDriverView(APIView):
     @format_response
     def get(self, request):
         try:
-            fleet_owner = FleetOwner.objects.get(email=request.user.email)
+            fleet_owner = request.user
             drivers = Driver.objects.filter(fleet_owner=fleet_owner)
             vehicles = Vehicle.objects.filter(driver__in=drivers)
 
