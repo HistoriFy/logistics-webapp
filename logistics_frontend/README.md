@@ -7,10 +7,11 @@ This folder contains the frontend code for the Logistics project.
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Notes](#notes)
 
 ## Features
 
-- BARE html, css and javascript
+- **BARE** html, css and javascript
 - Real-time shipment tracking
 - Inventory management
 - User authentication and authorization
@@ -28,3 +29,7 @@ cd logistics_frontend
 ## Usage
 
 Server starts from index.html file.
+
+## Notes
+
+- Few pages such as user dashboard, driver dashboard are still incomplete 🙏

@@ -109,7 +109,7 @@ function sendDataToBackend(latitude, longitude, speed, heading) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify(data)
     })
@@ -213,7 +213,7 @@ function toggleAvailability() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
     .then(response => response.json())
@@ -235,7 +235,7 @@ function acceptBooking(bookingId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -260,7 +260,7 @@ function rejectBooking(bookingId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -286,7 +286,7 @@ function validateOTP(bookingId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Token ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             },
             body: JSON.stringify({ booking_id: bookingId, otp: otp })
         })
@@ -311,7 +311,7 @@ function completeRide(bookingId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -338,7 +338,7 @@ function cancelBooking(bookingId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Token ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             },
             body: JSON.stringify({ booking_id: bookingId, feedback: feedback })
         })
@@ -362,7 +362,7 @@ async function fetchCurrentOrders() {
     try {
         const response = await fetch('http://149.102.149.102:8000/api/v1/driver/current-orders', {
             headers: {
-                'Authorization': 'Token ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
         });
         const data = await response.json();
@@ -382,7 +382,7 @@ async function fetchAvailableOrders() {
     try {
         const response = await fetch('http://149.102.149.102:8000/api/v1/driver/available-orders', {
             headers: {
-                'Authorization': 'Token ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
         });
         const data = await response.json();
@@ -402,7 +402,7 @@ async function fetchPastOrders() {
     try {
         const response = await fetch('http://149.102.149.102:8000/api/v1/driver/bookings/past/', {
             headers: {
-                'Authorization': 'Token ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
         });
         const data = await response.json();
@@ -420,35 +420,7 @@ async function fetchPastOrders() {
 
 function initializeWebSockets() {
     const jwtToken = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-    const driverId = localStorage.getItem('driverId');
 
-    // User WebSocket
-    userWebSocket = new WebSocket(`ws://149.102.149.102:8000/regular_user/ws/bookings/?token=${jwtToken}`);
-    
-    userWebSocket.onopen = function(e) {
-        console.log("[open] User WebSocket connection established");
-    };
-
-    userWebSocket.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        handleUserWebSocketMessage(data);
-    };
-
-    userWebSocket.onclose = function(event) {
-        if (event.wasClean) {
-            console.log(`[close] User WebSocket connection closed cleanly, code=${event.code} reason=${event.reason}`);
-        } else {
-            console.log('[close] User WebSocket connection died');
-        }
-    };
-
-    userWebSocket.onerror = function(error) {
-        console.log(`[error] User WebSocket error: ${error.message}`);
-    };
-
-    // Driver Available Bookings WebSocket
-// Driver Available Bookings WebSocket
     driverAvailableBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${jwtToken}`);
     
     driverAvailableBookingsWebSocket.onopen = function(e) {
