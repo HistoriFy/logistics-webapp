@@ -6,7 +6,8 @@ from .views import (AcceptBookingView,
                    ValidateOTPView,
                    DriverCancelBookingView,
                    DriverCompleteRideView,
-                   DriverSimulateToggleView)
+                   DriverSimulateToggleView,
+                   FetchAllPastBookingsView)
                    
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path('bookings/cancel/driver/', DriverCancelBookingView.as_view(), name='cancel-booking-driver'),
     path('bookings/complete/driver/', DriverCompleteRideView.as_view(), name='complete-ride-driver'),
     path('simulate/toggle/', DriverSimulateToggleView.as_view(), name='simulate-toggle'),
+    path('bookings/past/', FetchAllPastBookingsView.as_view(), name='fetch-past-bookings'),
 ]

@@ -376,3 +376,27 @@ class DriverSimulateToggleView(APIView):
         return ({
             'message': f'Driver simulation status toggled to {simulate_row.simulation_status}.',
         }, 200)
+
+class FetchAllPastBookingsView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsDriver]
+
+    @format_response
+    def get(self, request):
+        driver = request.user
+        past_bookings = Booking.objects.filter(driver=driver, status='completed').order_by('-dropoff_time')
+
+        return ({
+            'past_bookings': [
+                {
+                    'id': booking.id,
+                    'pickup_location': booking.pickup_location.address,
+                    'dropoff_location': booking.dropoff_location.address,
+                    'pickup_time': str(booking.pickup_time),
+                    'dropoff_time': str(booking.dropoff_time),
+                    'fare': booking.estimated_cost,
+                    'feedback': booking.feedback,
+                }
+                for booking in past_bookings
+            ]
+        }, 200)
