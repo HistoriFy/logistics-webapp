@@ -288,7 +288,7 @@ class FetchAllPastBookingsView(APIView):
                 'distance': booking.distance,
                 'scheduled_time': booking.scheduled_time,
                 'payment_method': booking.payment_method,
-                'created_at': booking.created_at
+                'created_at': booking.booking_time
             })
             
         return (past_bookings_data, 200)
