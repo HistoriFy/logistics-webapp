@@ -30,7 +30,6 @@ class DriverSerializer(serializers.Serializer):
         return value
 
 class VehicleSerializer(serializers.Serializer):
-    vehicle_type_id = serializers.IntegerField()
     license_plate = serializers.CharField(max_length=20)
     capacity = serializers.FloatField()
     make = serializers.CharField(max_length=100)
