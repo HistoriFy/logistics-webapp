@@ -74,10 +74,10 @@ class DeleteVehicleSerializer(serializers.Serializer):
 
 class UpdateDriverSerializer(serializers.Serializer):
     driver_id = serializers.IntegerField()
-    email = serializers.EmailField(optional=True)
-    name = serializers.CharField(optional=True, max_length=255)
-    phone = serializers.CharField(optional=True, max_length=15)
-    license_number = serializers.CharField(optional=True, max_length=50)
+    email = serializers.EmailField(required=False, allow_null=True)
+    name = serializers.CharField(required=False, allow_null=True, max_length=255)
+    phone = serializers.CharField(required=False, allow_null=True, max_length=15)
+    license_number = serializers.CharField(required=False, allow_null=True, max_length=50)
 
     def validate_driver_id(self, value):
         if not Driver.objects.filter(pk=value).exists():
@@ -105,12 +105,12 @@ class UpdateDriverSerializer(serializers.Serializer):
     
 class UpdateVehicleSerializer(serializers.Serializer):
     vehicle_id = serializers.IntegerField()
-    license_plate = serializers.CharField(optional=True, max_length=20)
-    capacity = serializers.FloatField(optional=True)
-    make = serializers.CharField(optional=True, max_length=100)
-    model = serializers.CharField(optional=True, max_length=100)
-    year = serializers.IntegerField(optional=True)
-    color = serializers.CharField(optional=True, max_length=50)
+    license_plate = serializers.CharField(required=False, allow_null=True, max_length=20)
+    capacity = serializers.FloatField(required=False, allow_null=True)
+    make = serializers.CharField(required=False, allow_null=True, max_length=100)
+    model = serializers.CharField(required=False, allow_null=True, max_length=100)
+    year = serializers.IntegerField(required=False, allow_null=True)
+    color = serializers.CharField(required=False, allow_null=True, max_length=50)
 
     def validate_vehicle_id(self, value):
         if not Vehicle.objects.filter(pk=value).exists():
