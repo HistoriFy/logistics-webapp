@@ -33,14 +33,14 @@ RUN poetry install --no-interaction --no-ansi
 COPY . .
 
 # Copy Nginx configuration
-COPY nginx.conf /etc/nginx/sites-available/default
+COPY /docker-compose-config/nginx.conf /etc/nginx/sites-available/default
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 
 # Create static and media directories
 RUN mkdir -p /app/static /app/media
 
 # Copy Redis configuration
-COPY redis.conf /etc/redis/redis.conf
+COPY /docker-compose-config/redis.conf /etc/redis/redis.conf
 
 # Expose the necessary ports
 EXPOSE 80 8000

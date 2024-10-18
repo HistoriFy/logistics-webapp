@@ -1,0 +1,93 @@
+<!-- INCOMPLETE DUE TO HEALTH ISSUES -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiSwift Driver Dashboard</title>
+    <link rel="stylesheet" href="css/driver.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>LogiSwift Driver Dashboard</h1>
+            <div>
+                <button class="dark-mode-toggle" id="darkModeToggle">🌓</button>
+                <button class="logout-button" id="logoutButton">Logout</button>
+            </div>
+        </div>
+
+        <div class="simulate-container">
+            <span class="simulate-label">Simulate:</span>
+            <label class="switch">
+                <input type="checkbox" id="simulateToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div id="status"></div>
+
+        <div class="card">
+            <h2>Current Orders</h2>
+            <table id="currentOrdersTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Pickup</th>
+                        <th>Delivery</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="no-bookings">No current bookings</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Available Orders</h2>
+            <table id="availableOrdersTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Pickup</th>
+                        <th>Delivery</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="no-bookings">No available bookings</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Past Orders</h2>
+            <table id="pastOrdersTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Pickup</th>
+                        <th>Delivery</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" class="no-bookings">No past bookings</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button id="refreshPastOrders" class="refresh-button">Refresh Past Orders</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src = "script/driver.js"></script>
+</body>
+</html>

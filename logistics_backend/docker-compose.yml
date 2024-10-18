@@ -22,7 +22,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker-compose-config/nginx.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/static
       - media_volume:/app/media
     depends_on:
@@ -41,7 +41,7 @@ services:
   redis:
     image: redis:alpine
     volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./docker-compose-config/redis.conf:/usr/local/etc/redis/redis.conf
     # command: sh -c "sysctl -w vm.overcommit_memory=1 && redis-server /usr/local/etc/redis/redis.conf"
     privileged: true
     ports:

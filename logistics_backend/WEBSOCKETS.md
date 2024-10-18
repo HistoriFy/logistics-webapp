@@ -1,236 +1,220 @@
-# WebSocket API Documentation for Project
+### WebSocket Connection Documentation
 
-This documentation provides an overview of the WebSocket connections used for real-time communication between regular users, drivers, and the backend system. It includes information on connecting, sending, and receiving data through WebSocket channels for both users and drivers.
+#### 1. **User WebSocket Connection URL**
 
-## **WebSocket Connection Overview**
-
-This project uses WebSockets to provide real-time updates to users and drivers. The WebSocket connections are authenticated using JWT (JSON Web Tokens) and are used for various purposes, such as updating the status of bookings, notifying drivers about new available bookings, and sending OTPs for trip confirmations.
-
----
-
-## **General WebSocket Structure**
-
-To establish a WebSocket connection, a client needs to provide a valid JWT token in the headers, as these connections are secured by middleware for regular users and drivers.
-
-### **WebSocket URL Format**
-
-- **User WebSocket**: `ws://<host>/ws/regular_user/bookings/`
-- **Driver WebSocket**: `ws://<host>/ws/driver/bookings/`
-- **Driver Available Bookings**: `ws://<host>/ws/driver/available_bookings/`
-
-### **JWT Authentication Middleware**
-
-The WebSocket connection requires the JWT token to authenticate users or drivers:
-
-- **Regular Users**: Use the `JWTAuthMiddleware`.
-- **Drivers**: Use the `DriverJWTAuthMiddleware`.
-
-When connecting, include the JWT token as a part of the WebSocket connection headers.
-
----
-
-## **WebSocket for Regular Users**
-
-### **Endpoint**: `/ws/bookings/`
-
-This WebSocket channel allows regular users to receive real-time updates on their bookings, such as status changes and OTP notifications.
-
-### **Usage**
-
-1. **Connect to WebSocket**
-
-   - **URL**: `ws://<host>/ws/regular_user/bookings/`
-   - **Method**: `CONNECT`
-   - **Headers**:
-     - `Authorization`: `Bearer <jwt_access_token>`
-
-2. **Receive Booking Status Update**
-
-   Once connected, users will receive updates on their booking status, such as "pending," "accepted," or "completed."
-
-   **Sample Message Format**:
-
-   ```json
-   {
-     "booking_id": 123,
-     "status": "accepted",
-     "message": "Your booking has been accepted by the driver."
-   }
-   ```
-
-3. **Receive OTP Update**
-
-   When the booking is accepted, the user will also receive the OTP required to start the trip.
-
-   **Sample OTP Message**:
-
-   ```json
-   {
-     "otp": "123456",
-     "message": "Your booking has been accepted. Here is your OTP to start the trip."
-   }
-   ```
-
----
-
-## **WebSocket for Drivers**
-
-### **Endpoint 1**: `/ws/driver/bookings/`
-
-This WebSocket channel allows drivers to receive updates about bookings they have accepted, including changes in status or OTP updates.
-
-### **Usage**
-
-1. **Connect to WebSocket**
-
-   - **URL**: `ws://<host>/ws/driver/bookings/`
-   - **Method**: `CONNECT`
-   - **Headers**:
-     - `Authorization`: `Bearer <jwt_access_token>`
-
-2. **Receive Booking Status Update**
-
-   Drivers will receive updates about the status of their assigned bookings.
-
-   **Sample Message Format**:
-
-   ```json
-   {
-     "booking_id": 123,
-     "status": "on_trip",
-     "message": "The trip has started. Please proceed to the destination."
-   }
-   ```
-
----
-
-### **Endpoint 2**: `/ws/driver/available_bookings/`
-
-This WebSocket channel allows drivers to receive real-time notifications when new bookings are available within their area.
-
-### **Usage**
-
-1. **Connect to WebSocket**
-
-   - **URL**: `ws://<host>/ws/driver/available_bookings/`
-   - **Method**: `CONNECT`
-   - **Headers**:
-     - `Authorization`: `Bearer <jwt_access_token>`
-
-2. **Receive Available Booking Update**
-
-   Drivers will receive updates about new bookings that are available for them to accept.
-
-   **Sample Message Format**:
-
-   ```json
-   {
-     "booking_id": 456,
-     "pickup_location": "123 Street, City",
-     "dropoff_location": "456 Avenue, City",
-     "estimated_cost": 300.00,
-     "message": "A new booking is available."
-   }
-   ```
-
----
-
-## **Common WebSocket Events**
-
-### **1. Booking Status Update**
-
-- **Event Trigger**: Sent to both users and drivers when the booking status changes (e.g., when a booking is accepted, started, or completed).
-  
-- **Message Format**:
-
-```json
-{
-  "booking_id": 123,
-  "status": "on_trip",
-  "message": "The trip has started."
-}
+```bash
+ws://<localhost>:<port>/regular_user/ws/bookings/?token=jwt_token
 ```
 
-### **2. OTP Update (User)**
+- **Purpose:** This WebSocket is used for regular users to receive real-time updates on their bookings.
+- **Group Name Format:** `user_{user_id}_bookings`
+- **Messages:**
+  - **Booking Status Update:**
+    - Triggered when the status of a user's booking changes (e.g., accepted, cancelled, on trip, etc.).
+    - Example message:
+      ```json
+      {
+        "type": "booking_status_update",
+        "message": {
+          "status": "on_trip",
+          "booking_id": 123,
+          "pickup_time": "2024-10-18 10:30:00",
+          "message": "OTP Verified. Trip has started."
+        }
+      }
+      ```
+  - **OTP Update:**
+    - Triggered when an OTP is sent or updated.
+    - Example message:
+      ```json
+      {
+        "type": "send_otp_update",
+        "otp": "123456",
+        "booking_id": 123
+      }
+      ```
+  - **Location Update:**
+    - Broadcasts driver’s real-time location to the user during the trip.
+    - Example message:
+      ```json
+      {
+        "type": "location_update",
+        "driver_id": 45,
+        "current_latitude": "37.7749",
+        "current_longitude": "-122.4194",
+        "status": "on_trip"
+      }
+      ```
 
-- **Event Trigger**: Sent to the user when their booking has been accepted, along with the OTP to start the trip.
+#### 2. **Driver WebSocket Connection URL for Available Bookings**
 
-- **Message Format**:
-
-```json
-{
-  "otp": "123456",
-  "message": "Your booking has been accepted. Here is your OTP to start the trip."
-}
+```bash
+ws://<localhost>:<port>/driver/ws/available_bookings/?token=jwt_token
 ```
 
-### **3. Available Booking Update (Driver)**
+- **Purpose:** This WebSocket is used by drivers to receive updates on available bookings.
+- **Group Name Format:** `driver_{driver_id}_available_bookings`
+- **Messages:**
+  - **Available Booking Update:**
+    - Sent when a booking is available for the driver to accept.
+    - Example message:
+      ```json
+      {
+        "type": "available_booking_update",
+        "message": {
+          "status": "accepted",
+          "booking_id": 123,
+          "pickup_location": "123 Main St",
+          "phone_number": "+1234567890",
+          "dropoff_location": "456 Elm St"
+        }
+      }
+      ```
+  - **Trip Start:**
+    - Sent when the trip has started.
+    - Example message:
+      ```json
+      {
+        "type": "available_booking_update",
+        "message": {
+          "status": "on_trip",
+          "booking_id": 123,
+          "pickup_time": "2024-10-18 10:30:00"
+        }
+      }
+      ```
+  - **Trip Completion:**
+    - Sent when the trip is completed.
+    - Example message:
+      ```json
+      {
+        "type": "available_booking_update",
+        "message": {
+          "status": "completed",
+          "booking_id": 123,
+          "dropoff_time": "2024-10-18 11:00:00"
+        }
+      }
+      ```
 
-- **Event Trigger**: Sent to the driver when a new booking becomes available for them to accept.
+#### 3. **Driver WebSocket for Confirmed Bookings**
 
-- **Message Format**:
-
-```json
-{
-  "booking_id": 456,
-  "pickup_location": "123 Street, City",
-  "dropoff_location": "456 Avenue, City",
-  "estimated_cost": 300.00,
-  "message": "A new booking is available."
-}
+```bash
+ws://<localhost>:<port>/driver/ws/available_bookings/?token=jwt_token
 ```
 
----
+- **Purpose:** This WebSocket is for drivers to receive updates on bookings that they have already accepted.
+- **Messages:**
+  - **Booking Status Update:**
+    - Example message:
+      ```json
+      {
+        "type": "booking_status_update",
+        "message": {
+          "status": "accepted",
+          "booking_id": 123,
+          "pickup_location": "123 Main St",
+          "phone_number": "+1234567890",
+          "dropoff_location": "456 Elm St"
+        }
+      }
+      ```
+  - **Cancel Booking:**
+    - Sent when a driver cancels the booking.
+    - Example message:
+      ```json
+      {
+        "type": "booking_status_update",
+        "message": {
+          "status": "cancelled",
+          "booking_id": 123,
+          "message": "Booking has been cancelled by the driver."
+        }
+      }
+      ```
+  - **Trip Start:**
+    - Sent when the trip has started after OTP verification.
+    - Example message:
+      ```json
+      {
+        "type": "booking_status_update",
+        "message": {
+          "status": "on_trip",
+          "booking_id": 123,
+          "pickup_time": "2024-10-18 10:30:00",
+          "message": "OTP Verified. Trip has started."
+        }
+      }
+      ```
 
-## **WebSocket Disconnection**
+#### 4. **Driver's Location Updates to Users**
 
-When the WebSocket connection is closed, the user or driver will be automatically removed from the group, and no more messages will be sent until they reconnect.
-
-### **Example Disconnection Event (Driver)**:
-
-```json
-{
-  "message": "Driver disconnected from the available bookings group."
-}
-```
-
-### **Common Disconnection Scenarios**:
-- User or driver closes the connection.
-- JWT token is expired or invalid, leading to forced disconnection.
-- Server shuts down or restarts.
-
----
-
-## **Error Handling**
-
-### **Connection Errors**
-
-- **401 Unauthorized**: This occurs if the JWT token is invalid or expired when attempting to connect.
-
-  **Message Format**:
-
+- **Function:** `_broadcast_location_update(driver, booking, status)`
+- **Description:** Sends real-time updates about the driver’s current location during a booking.
+- **Output Example:**
   ```json
   {
-    "success": false,
-    "message": "Invalid or expired token."
+    "type": "location_update",
+    "driver_id": 45,
+    "current_latitude": "37.7749",
+    "current_longitude": "-122.4194",
+    "status": "on_trip"
   }
   ```
 
-### **400 Bad Request**
+#### 5. **Trigger for OTP Updates**
 
-- If the request does not follow the expected format, the connection will be rejected.
-
-  **Message Format**:
-
+- **Function:** Updates the user’s OTP for booking verification.
+- **Output Example:**
   ```json
   {
-    "success": false,
-    "message": "Malformed WebSocket request."
+    "type": "send_otp_update",
+    "otp": "123456",
+    "booking_id": 123
   }
   ```
 
----
+#### 6. **Driver Acceptance of Booking**
 
-## **Conclusion**
+- **Function:** `notify_driver_about_booking(driver, booking)`
+- **Purpose:** Notifies the driver about a newly accepted booking.
+- **Output Example:**
+  ```json
+  {
+    "type": "booking_status_update",
+    "message": {
+      "status": "accepted",
+      "booking_id": 123,
+      "pickup_location": "123 Main St",
+      "phone_number": "+1234567890",
+      "dropoff_location": "456 Elm St"
+    }
+  }
+  ```
 
-The WebSocket integration enables real-time interaction for both regular users and drivers, providing instant updates on bookings and available rides. Make sure to handle JWT token expiration and reconnections properly to maintain a seamless user experience.
+#### 7. **Booking Cancellation**
+
+- **Function:** `send_booking_status_update(sender, instance, created, **kwargs)`
+- **Purpose:** Sends a message when the booking is canceled by the driver or user.
+- **Output Example:**
+  ```json
+  {
+    "type": "booking_status_update",
+    "message": {
+      "status": "cancelled",
+      "booking_id": 123,
+      "message": "Booking has been cancelled by the driver."
+    }
+  }
+  ```
+
+### Summary of WebSocket Message Types
+
+| WebSocket Type             | Purpose                                   | Example Group Name                    | Output Type                |
+|----------------------------|-------------------------------------------|---------------------------------------|----------------------------|
+| **User Booking Updates**    | Sends booking status updates to the user  | `user_{user_id}_bookings`             | `booking_status_update`     |
+| **Driver Available Bookings** | Sends available booking updates to drivers | `driver_{driver_id}_available_bookings` | `available_booking_update`  |
+| **Driver Confirmed Bookings** | Sends updates to drivers about their accepted bookings | `driver_{driver_id}_bookings` | `booking_status_update` |
+| **Location Update**         | Sends driver location updates to the user | `user_{booking.user.id}_bookings` | `location_update`            |
+| **OTP Update**              | Sends OTP verification updates to users  | `user_{user_id}_bookings`             | `send_otp_update`           |
+

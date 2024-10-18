@@ -4,11 +4,13 @@ from rest_framework.views import APIView
 from decimal import Decimal
 from datetime import timedelta
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from .models import Booking, Location
 from .serializers import (BookingCreateSerializer, PlacePredictionSerializer,
                          PriceEstimationSerializer, PlaceLatLongSerializer,
-                         LatLongPlaceTypeSerializer)
-
+                         LatLongPlaceTypeSerializer, BookingSerializer)
 
 from .tasks import find_nearby_drivers
 from driver.tasks import simulate_driver_movement
@@ -178,13 +180,16 @@ class PriceEstimationView(APIView):
 class BookingCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsRegularUser]
-    
+
     @format_response
     def post(self, request):
         serializer = BookingCreateSerializer(data=request.data)
         if serializer.is_valid():
             user = request.user
-            vehicle_type = VehicleType.objects.get(vehicle_type_id=serializer.validated_data['vehicle_type_id'])
+            try:
+                vehicle_type = VehicleType.objects.get(vehicle_type_id=serializer.validated_data['vehicle_type_id'])
+            except VehicleType.DoesNotExist:
+                raise BadRequest('Invalid vehicle type ID')
 
             pickup_location = Location.objects.create(
                 address=serializer.validated_data['pickup_address'],
@@ -210,21 +215,21 @@ class BookingCreateView(APIView):
                     destination_lat=dropoff_location.latitude,
                     destination_lng=dropoff_location.longitude
                 )
-
                 distance_in_km = distance_value / 1000.0
                 estimated_duration = timedelta(seconds=estimated_duration_seconds)
-
             except Exception as e:
                 raise BadRequest(str(e))
 
-            pricing_model = PricingModel.objects.filter(vehicle_type=vehicle_type).first()
-            if not pricing_model:
+            try:
+                pricing_model = PricingModel.objects.get(vehicle_type=vehicle_type)
+            except PricingModel.DoesNotExist:
                 raise BadRequest('Pricing model not found for the selected vehicle type')
 
+            # costlier during afternoon in surge pricing. cheaper during night
+            # costlier in cities, cheaper in rural areas
             estimated_cost = (pricing_model.base_fare +
                               (pricing_model.per_km_rate * Decimal(distance_in_km)) +
                               (pricing_model.per_minute_rate * Decimal(estimated_duration_seconds / 60)))
-            
             estimated_cost *= pricing_model.surge_multiplier
 
             booking = Booking.objects.create(
@@ -241,6 +246,16 @@ class BookingCreateView(APIView):
                 pricing=pricing_model
             )
 
+            # update user about pending booking
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{booking.user.id}_bookings",
+                {
+                    'type': 'booking_status_update',
+                    'message': BookingSerializer(booking).data
+                }
+            )
+
             response_data = {
                 'booking_id': booking.id,
                 'estimated_cost': float(booking.estimated_cost),
@@ -248,7 +263,7 @@ class BookingCreateView(APIView):
                 'estimated_duration': estimated_duration_seconds,
                 'status': booking.status
             }
-            
+
             #algorithm task call using django-after-response
             # find_nearby_drivers.after_response(booking.id)
             
@@ -260,11 +275,11 @@ class BookingCreateView(APIView):
             if simulate_row.simulation_status == True:
                 # simulate_driver_movement.after_response(booking.id)
                 simulate_driver_movement.delay(booking.id)
-            
-            return (response_data, 201)
+
+            return Response(response_data, status=201)
 
         else:
-            raise BadRequest(str(serializer.errors))
+            raise BadRequest(serializer.errors)
         
     
 class FetchAllPastBookingsView(APIView):
