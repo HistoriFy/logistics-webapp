@@ -14,10 +14,7 @@ def populate_vehicle_types(apps, schema_editor):
         vehicle_types = json.load(file)
     
     for vehicle in vehicle_types:
-        VehicleType.objects.update_or_create(
-            type_name=vehicle['type_name'],  
-            defaults=vehicle
-        )
+        VehicleType.objects.create(**vehicle)
 
 class Migration(migrations.Migration):
 
