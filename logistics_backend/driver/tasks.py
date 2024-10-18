@@ -1,3 +1,4 @@
+from celery import shared_task
 from time import sleep
 from django.utils import timezone
 from channels.layers import get_channel_layer
@@ -8,7 +9,8 @@ from booking.models import Booking
 from authentication.models import Driver
 from .helpers import generate_random_location, move_towards
 
-@after_response.enable
+# @after_response.enable
+@shared_task
 def simulate_driver_movement(booking_id):
     try:
         driver = Driver.objects.filter(status='available', availability_status=True).first()

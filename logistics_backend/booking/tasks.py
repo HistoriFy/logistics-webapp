@@ -1,3 +1,4 @@
+from celery import shared_task
 from time import sleep
 from django.conf import settings
 
@@ -28,8 +29,8 @@ def notify_driver_about_booking(driver, booking):
         }
     )
 
-# @shared_task
-@after_response.enable
+@shared_task
+# @after_response.enable
 def find_nearby_drivers(booking_id):
     # print("Celery task started")
     try:

@@ -249,22 +249,23 @@ class BookingCreateView(APIView):
                 'status': booking.status
             }
             
-            #algorithm task call
-            find_nearby_drivers.after_response(booking.id)
+            #algorithm task call using django-after-response
+            # find_nearby_drivers.after_response(booking.id)
+            
+            #algorithm task call using celery
+            find_nearby_drivers.delay(booking.id)
             
             #driver simulation task call
             simulate_row = SimulationStatus.objects.first()
             if simulate_row.simulation_status == True:
-                simulate_driver_movement.after_response(booking.id)
+                # simulate_driver_movement.after_response(booking.id)
+                simulate_driver_movement.delay(booking.id)
             
             return (response_data, 201)
 
         else:
             raise BadRequest(str(serializer.errors))
         
-    # @after_response.enable
-    # def start_find_nearby_drivers_task(self, booking_id):
-    #     find_nearby_drivers.delay(booking_id)
     
 class FetchAllPastBookingsView(APIView):
     authentication_classes = [CustomJWTAuthentication]
