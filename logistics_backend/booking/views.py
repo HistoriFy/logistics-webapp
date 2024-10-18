@@ -4,8 +4,11 @@ from rest_framework.views import APIView
 from decimal import Decimal
 from datetime import timedelta
 
-from .serializers import BookingCreateSerializer, PlacePredictionSerializer, PriceEstimationSerializer, PlaceLatLongSerializer
 from .models import Booking, Location
+from .serializers import (BookingCreateSerializer, PlacePredictionSerializer,
+                         PriceEstimationSerializer, PlaceLatLongSerializer,
+                         LatLongPlaceTypeSerializer)
+
 
 from .tasks import find_nearby_drivers
 from driver.tasks import simulate_driver_movement
@@ -61,6 +64,33 @@ class PlaceLatLongView(APIView):
                 
             except Exception as e:
                 raise BadRequest(str(e))
+        else:
+            raise BadRequest(serializer.errors)
+
+class LatLongPlaceTypeView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsRegularUser]
+
+    @format_response
+    def post(self, request):
+        serializer = LatLongPlaceTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            lat = serializer.validated_data['latitude']
+            lng = serializer.validated_data['longitude']
+            
+            place_repository = PlaceRepository(api_key=settings.GOOGLE_API_KEY)
+
+            try:
+                place_id, location_name = place_repository.get_place_id_from_coordinates(lat, lng)
+                
+                return ({
+                    'place_id': place_id,
+                    'location_name': location_name
+                }, 200)
+                
+            except Exception as e:
+                raise BadRequest(str(e))
+            
         else:
             raise BadRequest(serializer.errors)
 

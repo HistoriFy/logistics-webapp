@@ -36,6 +36,20 @@ class PlaceLatLongSerializer(serializers.Serializer):
             raise serializers.ValidationError("Place ID cannot be empty.")
         return value
 
+class LatLongPlaceTypeSerializer(serializers.Serializer):
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
+    
+    def validate_latitude(self, value):
+        if value < -90 or value > 90:
+            raise serializers.ValidationError("Latitude must be between -90 and 90.")
+        return value
+    
+    def validate_longitude(self, value):
+        if value < -180 or value > 180:
+            raise serializers.ValidationError("Longitude must be between -180 and 180.")
+        return value
+
 
 class BookingCreateSerializer(serializers.Serializer):
     vehicle_type_id = serializers.IntegerField()

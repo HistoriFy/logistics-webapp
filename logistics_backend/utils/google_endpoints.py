@@ -124,8 +124,11 @@ class PlaceRepository:
             data = response.json()
 
             if data['status'] == 'OK' and data['results']:
+                # pprint(data['results'])
                 place_id = data['results'][0]['place_id']
-                return place_id
+                location_name = data['results'][0]['formatted_address']
+                return place_id, location_name
+            
             else:
                 raise Exception(data.get('error_message', 'Error fetching place_id from coordinates'))
         except requests.exceptions.RequestException as e:
@@ -145,3 +148,6 @@ class PlaceRepository:
 
 # distance, duration = place_repo.get_distance_and_time(lat, lng, lat1, lng1)
 # print(f"Distance: {distance}, Duration: {duration}")
+
+# place_id, location_name = place_repo.get_place_id_from_coordinates(25.2654312, 84.7074619)
+# print(f"Place ID: {place_id}, Location Name: {location_name}")
