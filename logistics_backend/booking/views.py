@@ -276,7 +276,7 @@ class BookingCreateView(APIView):
                 # simulate_driver_movement.after_response(booking.id)
                 simulate_driver_movement.delay(booking.id)
 
-            return Response(response_data, status=201)
+            return (response_data, 201)
 
         else:
             raise BadRequest(serializer.errors)

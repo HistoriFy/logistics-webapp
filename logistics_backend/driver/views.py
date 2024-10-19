@@ -201,16 +201,14 @@ class ToggleDriverAvailabilityView(APIView):
 
     @format_response
     @transaction.atomic
-    def post(self, request):
+    def get(self, request):
         driver = request.user
+        
+        if driver.status == "on_trip":
+            raise BadRequest("Driver is currently on a trip and cannot change availability status.")
 
         # Toggle availability status
-        if driver.availability_status == True:
-            driver.availability_status = False
-        elif driver.availability_status == False:
-            driver.availability_status = True
-        else:
-            raise BadRequest("Driver is currently on a trip and cannot change availability status.")
+        driver.availability_status = not driver.availability_status
 
         driver.save()
 

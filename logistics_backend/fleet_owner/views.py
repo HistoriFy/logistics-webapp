@@ -122,10 +122,14 @@ class UpdateDriverView(APIView):
             if driver.fleet_owner != fleet_owner:
                 raise Unauthorized("You are not authorized to perform this action.")
 
-            driver.name = serializer.validated_data["name"]
-            driver.email = serializer.validated_data["email"]
-            driver.phone = serializer.validated_data["phone"]
-            driver.license_number = serializer.validated_data["license_number"]
+            if "name" in serializer.validated_data:
+                driver.name = serializer.validated_data["name"]
+            if "email" in serializer.validated_data:
+                driver.email = serializer.validated_data["email"]
+            if "phone" in serializer.validated_data:
+                driver.phone = serializer.validated_data["phone"]
+            if "license_number" in serializer.validated_data:
+                driver.license_number = serializer.validated_data["license_number"]
             driver.save()
 
             return ({"message": "Driver updated successfully."}, 200)
@@ -154,12 +158,18 @@ class UpdateVehicleView(APIView):
             if vehicle.fleet_owner != fleet_owner:
                 raise Unauthorized("You are not authorized to perform this action.")
 
-            vehicle.license_plate = serializer.validated_data["license_plate"]
-            vehicle.capacity = serializer.validated_data["capacity"]
-            vehicle.make = serializer.validated_data["make"]
-            vehicle.model = serializer.validated_data["model"]
-            vehicle.year = serializer.validated_data["year"]
-            vehicle.color = serializer.validated_data["color"]
+            if "license_plate" in serializer.validated_data:
+                vehicle.license_plate = serializer.validated_data["license_plate"]
+            if "capacity" in serializer.validated_data:
+                vehicle.capacity = serializer.validated_data["capacity"]
+            if "make" in serializer.validated_data:
+                vehicle.make = serializer.validated_data["make"]
+            if "model" in serializer.validated_data:
+                vehicle.model = serializer.validated_data["model"]
+            if "year" in serializer.validated_data:
+                vehicle.year = serializer.validated_data["year"]
+            if "color" in serializer.validated_data:
+                vehicle.color = serializer.validated_data["color"]
             vehicle.save()
 
             return ({"message": "Vehicle updated successfully."}, 200)
