@@ -6,6 +6,7 @@ from utils.exceptions import BadRequest, Unauthorized
 from authentication.models import Driver
 from fleet_owner.models import Vehicle
 
+#created mixin to handle too many repeated checks
 class VehicleAssignmentMixin:
     def get_fleet_owner(self, request):
         return request.user

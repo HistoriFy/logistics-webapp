@@ -11,6 +11,14 @@ from utils.exceptions import BadRequest, Unauthorized
 
 
 class RegisterView(APIView):
+    """Register a new user, driver or fleet owner.
+
+    Args:
+        APIView (DRF APIView): Base class for all DRF views.
+
+    Raises:
+        BadRequest: Custom exception for bad requests.
+    """
 
     @format_response
     @transaction.atomic

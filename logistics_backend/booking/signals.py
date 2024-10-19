@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 from .models import Booking
 from booking.serializers import BookingSerializer
 
+# Signal to send live updates to the user when the status of their booking changes
 @receiver(post_save, sender=Booking)
 def send_booking_status_update(sender, instance, created, **kwargs):
     if not created:

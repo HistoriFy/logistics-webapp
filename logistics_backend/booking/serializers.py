@@ -31,7 +31,6 @@ class PlaceLatLongSerializer(serializers.Serializer):
     place_id = serializers.CharField(max_length=255)
 
     def validate_place_id(self, value):
-        # Ensure that the place_id is not empty or just whitespace
         if not value.strip():
             raise serializers.ValidationError("Place ID cannot be empty.")
         return value

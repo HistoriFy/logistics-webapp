@@ -6,7 +6,8 @@ This repository provides a full-featured logistics system, consisting of both ba
 - **Live Backend (WebSockets):** `ws://149.102.149.102:8000`
 - **Live Frontend:** [Logistics Frontend](http://https://logisticswebapprathore.fyi/)
 
-> **Note**: If there's a communication issue between the frontend and backend due to protocol mismatch, please enable `Insecure Content` in your browser's settings. [Update settings](chrome://settings/content/siteDetails?site=https%3A%2F%2Flogisticswebapprathore.fyi).
+> **Note**: If there's a communication issue between the frontend and backend due to protocol mismatch, please enable `Insecure Content` in your browser's settings for the frontend URL.
+[Chrome Update Page settings](chrome://settings/content/siteDetails?site=https%3A%2F%2Flogisticswebapprathore.fyi).
 
 - **Postman Collection:** [Logistics API](https://www.postman.com/rathore10/logistics)
 - **DB Architecture:** [Database Diagram](https://www.blocksandarrows.com/editor/VIGNePpAxVZlFlkrr)
@@ -160,8 +161,8 @@ GRANT ALL PRIVILEGES ON DATABASE logistics TO admin;
 
 ## ⚙️ Nginx & Redis Configuration
 
-- **Nginx:** The configuration is located in `nginx.conf`. It proxies requests to the Django app and serves static/media files.
-- **Redis:** Configuration is located in `redis.conf` and handles caching and background tasks.
+- **Nginx:** The configuration is located in `logistics_backend/docker-compose-config/nginx.conf`. It proxies requests to the Django app and serves static/media files.
+- **Redis:** Configuration is located in `logistics_backend/docker-compose-config/redis.conf` and handles caching and background tasks.
 
 ## ⚙️ Celery Setup
-Celery is used for background tasks and operates with Redis as the broker. The worker is managed in the `celery` service within `docker-compose.yml`.
+Celery is used for background tasks and operates with Redis as the broker. The worker is managed in the `celery` service within `logistics_backend/docker-compose.yml`.
