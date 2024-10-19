@@ -1,25 +1,90 @@
 # Logistics Full Stack App
 
-This repository contains the backend and frontend of a logistics system built using Django Rest Framework (DRF), Docker, Celery, Redis, PostgreSQL, and a frontend using HTML, CSS, JavaScript, and Bootstrap.
+This repository provides a full-featured logistics system, consisting of both backend and frontend. The backend is built with Django Rest Framework (DRF), Docker, Celery, Redis, PostgreSQL, and the frontend uses HTML, CSS, and JavaScript.
 
-## Prerequisites
+- **Live Backend (REST APIs):** [Backend API URL](http://149.102.149.102:8000)
+- **Live Backend (WebSockets):** `ws://149.102.149.102:8000`
+- **Live Frontend:** [Logistics Frontend](http://https://logisticswebapprathore.fyi/)
 
-- Docker and Docker Compose installed on your system.
-- PostgreSQL installed (if not using Docker).
+> **Note**: If there's a communication issue between the frontend and backend due to protocol mismatch, please enable `Insecure Content` in your browser's settings. [Update settings](chrome://settings/content/siteDetails?site=https%3A%2F%2Flogisticswebapprathore.fyi).
 
-## Setup Instructions
+- **Postman Collection:** [Logistics API](https://www.postman.com/rathore10/logistics)
+- **DB Architecture:** [Database Diagram](https://www.blocksandarrows.com/editor/VIGNePpAxVZlFlkrr)
+
+## 🚀 Features
+
+### 1. **Configurable Search Algorithm**
+You can modify key parameters in the search algorithm, such as:
+   - **Search Radius**: The initial search radius in km.
+   - **Search Time Limit**: The maximum time to search for nearby drivers, in seconds.
+   - **Incremental Radius Growth**: Increase the search radius if no drivers are found within the initial area.
+
+These parameters can be configured through environment variables, allowing flexibility in tuning for different use cases.
+
+### 2. **GPS Simulation**
+Simulates GPS locations for drivers. The simulation moves vehicles first to the pickup location and then to the drop-off using geographical calculations.
+
+### 3. **Dockerized & Kubernetes Ready**
+Fully Dockerized for easy deployment. Can also be deployed on Kubernetes clusters.
+
+### 4. **Celery Background Tasks**
+Handles background processes like:
+   - Driver location updates in GPS simulation.
+   - Real-time updates for users and drivers.
+   - OTP generation for ride authentication.
+
+### 5. **Redis Caching**
+Leverages Redis to cache WebSocket connections and Celery tasks for efficient performance.
+
+### 6. **Surge Pricing**
+Dynamic pricing based on:
+   - Afternoon heat, protecting drivers by increasing fares.
+   - Reduced pricing at night
+   - And in rural or small-town areas.
+
+### 7. **Google Maps API Integration**
+Seamlessly integrates with Google Maps for:
+   - Place Autocomplete.
+   - GPS coordinate conversions.
+   - Real-time distance and ETA calculations.
+
+### 8. **Custom JWT Authentication**
+JWT-based authentication that handles different user roles, such as users, drivers, and fleet owners.
+
+### 9. **Real-Time WebSocket Updates**
+Provides real-time updates for:
+   - Booking status.
+   - Driver location.
+   - OTP validation for trip commencement.
+   - Updates for drivers on available bookings.
+
+### 10. **Large-Scale Database**
+Designed to handle large volumes of data with over 15 tables and 100+ columns for flexibility and scalability.
+
+### 11. **OTP System**
+Ensures trip authenticity by generating OTPs shared through WebSockets, which drivers must validate to start the trip.
+
+### 12. **Custom Output Decorator and Error Handling**
+Custom decorators for API responses and error handling for consistent and user-friendly responses.
+
+## 🛠️ Prerequisites
+
+- **Docker & Docker Compose:** Ensure both are installed on your system.
+- **PostgreSQL:** If not using Docker, manually install PostgreSQL.
+
+## ⚙️ Setup Instructions
 
 ### Step 1: Clone the Repository
-
 ```bash
 git clone https://github.com/your-repo/logistics-backend.git
 cd logistics-backend
 ```
 
-### Step 2: Create `.env` File
+### Step 2: Configure Environment Variables
 
-Create an `.env` file in the root of your project directory with the following structure:
+Create an `.env` file in the root directory. Below are **mandatory** and **optional** environment variables:
 
+#### **Mandatory Environment Variables**
 ```bash
 # Google API Key
 GOOGLE_API_KEY=<your_google_api_key>
@@ -33,186 +98,70 @@ POSTGRES_USER=<your_db_user>
 POSTGRES_PASSWORD=<your_db_password>
 POSTGRES_DB=<your_db_name>
 
-# Celery and Redis Configuration
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/0
-REDASH_REDIS_URL=redis://localhost:6379/0
+# Redis Configuration (used for caching and background tasks)
+REDIS_URL=redis://redis:6379/0
 
 # Host and Debug Configuration
 ALLOWED_HOSTS=<your_server_ip>,localhost
 DEBUG=<true_or_false>
-
-# Search Algorithm Configuration
-SEARCH_RADIUS=<initial_search_radius_in_km>
-MAX_SEARCH_TIME=<max_search_time_in_seconds>  # e.g., 300 for 5 minutes
-
-# Simulation Configuration
-DRIVER_SPEED=<driver_speed_in_meters_per_update>
-RANDOM_LOCATION_RADIUS=<random_location_radius_in_meters>
-
-# WebSocket Configuration
-WEBSOCKET_TIMEOUT=<timeout_for_users_in_seconds>
-WEBSOCKET_TIMEOUT_DRIVER=<timeout_for_drivers_in_seconds>
-
-# JWT Token Lifetime Configuration
-ACCESS_TOKEN_LIFETIME=<access_token_lifetime_in_days>
-
-# Redis Configuration (Host and Port will be extracted from REDIS_URL)
-REDIS_URL=redis://redis:6379/0
 ```
 
-- **GOOGLE_API_KEY**: Google API key for accessing Google services (e.g., maps, geocoding).
-- **SECRET_KEY**: The secret key for Django security.
-- **DATABASE_URL**: PostgreSQL database connection URL.
-- **POSTGRES_USER**: PostgreSQL database username.
-- **POSTGRES_PASSWORD**: PostgreSQL database password.
-- **POSTGRES_DB**: PostgreSQL database name.
-- **CELERY_BROKER_URL**: URL for Celery broker, using Redis.
-- **CELERY_RESULT_BACKEND**: URL for Celery results backend, using Redis.
-- **REDASH_REDIS_URL**: URL for Redis caching (used with Redash).
-- **ALLOWED_HOSTS**: Comma-separated list of allowed hosts/IPs.
-- **DEBUG**: Set to `False` for production.
+#### **Optional Environment Variables**
+```bash
+# Search Algorithm Configuration
+SEARCH_RADIUS=<initial_search_radius_in_km>  # Default: 1
+MAX_SEARCH_TIME=<max_search_time_in_seconds>  # Default: 300 (5 minutes)
 
-### Step 3: Build and Run Docker Containers
+# Simulation Configuration
+DRIVER_SPEED=<driver_speed_in_meters_per_update>  # Default: 800
+RANDOM_LOCATION_RADIUS=<random_location_radius_in_meters>  # Default: 2000
 
-Use Docker Compose to build and run the containers:
+# WebSocket Configuration
+WEBSOCKET_TIMEOUT=<timeout_for_users_in_seconds>  # Default: 3600 (1 hour)
+WEBSOCKET_TIMEOUT_DRIVER=<timeout_for_drivers_in_seconds>  # Default: 3600 (1 hour)
 
+# JWT Token Lifetime Configuration
+ACCESS_TOKEN_LIFETIME=<access_token_lifetime_in_days>  # Default: 7
+```
+
+### Step 3: Build & Run Docker Containers
 ```bash
 docker-compose up --build
 ```
-
-This command will:
-
+This will:
 - Build the Docker images.
-- Start the web, Nginx, PostgreSQL, Redis, and Celery services.
-- The Django server will be accessible at `http://<your_server_ipv4>:8000` after the containers are up and running.
+- Start services for the web app, Nginx, PostgreSQL, Redis, and Celery.
+- The backend will be accessible at `http://<your_server_ip>:8000`.
 
-### Step 4: Apply Database Migrations
+## 🐘 PostgreSQL Setup (Linux)
 
-Once the containers are running, open a new terminal window and run the following command to apply the migrations:
+If you're installing PostgreSQL locally:
 
-```bash
-docker-compose exec web python manage.py migrate
-```
-
-### Step 5: Access the Frontend
-
-The frontend of the app is served statically. You can access the frontend pages at the following URLs:
-
-- Home Page: `http://<your_server_ipv4>/`
-- User Dashboard: `http://<your_server_ipv4>/user-dashboard.html`
-- Fleet Owner Dashboard: `http://<your_server_ipv4>/fleet-owner-dashboard.html`
-- GPS Tracking: `http://<your_server_ipv4>/gps-tracking.html`
-- Login: `http://<your_server_ipv4>/login.html`
-- Register: `http://<your_server_ipv4>/register.html`
-
-These pages are located in the `logistics_frontend` directory, and you can customize them further by editing the HTML, CSS, and JS files.
-
-## Setup PostgreSQL via CLI (Linux)
-
-If you're setting up PostgreSQL locally on a Linux machine (without Docker), follow these steps:
-
-### Step 1: Install PostgreSQL
-
+### Install PostgreSQL
 ```bash
 sudo apt update
 sudo apt install postgresql postgresql-contrib
 ```
 
-### Step 2: Start PostgreSQL Service
-
-Start the PostgreSQL service:
-
-```bash
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-```
-
-### Step 3: Switch to PostgreSQL User
-
-Switch to the `postgres` user to manage databases:
-
+### Create a Database & User
 ```bash
 sudo -i -u postgres
-```
-
-### Step 4: Create a Database and User
-
-Once logged in as the `postgres` user, create the database and user for your project:
-
-```bash
 psql
-CREATE DATABASE atlan;
-CREATE USER attest WITH PASSWORD 'admin';
-GRANT ALL PRIVILEGES ON DATABASE atlan TO attest;
+CREATE DATABASE logistics;
+CREATE USER admin WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE logistics TO admin;
+\q
 ```
 
-Exit the PostgreSQL prompt by typing `\q`.
+## 🚀 Common Docker Commands
+- **Stop containers:** `docker-compose down`
+- **Rebuild without cache:** `docker-compose build --no-cache`
+- **View logs:** `docker-compose logs -f`
 
-### Step 5: Modify PostgreSQL Configuration (Optional)
+## ⚙️ Nginx & Redis Configuration
 
-If you want to allow connections from other machines, modify the PostgreSQL configuration:
+- **Nginx:** The configuration is located in `nginx.conf`. It proxies requests to the Django app and serves static/media files.
+- **Redis:** Configuration is located in `redis.conf` and handles caching and background tasks.
 
-1. Open the PostgreSQL configuration file:
-
-   ```bash
-   sudo nano /etc/postgresql/13/main/postgresql.conf
-   ```
-
-2. Find the line `#listen_addresses = 'localhost'` and change it to:
-
-   ```bash
-   listen_addresses = '*'
-   ```
-
-3. Open the `pg_hba.conf` file:
-
-   ```bash
-   sudo nano /etc/postgresql/13/main/pg_hba.conf
-   ```
-
-4. Add the following line at the end of the file:
-
-   ```bash
-   host    all             all             0.0.0.0/0               md5
-   ```
-
-5. Restart PostgreSQL:
-
-   ```bash
-   sudo systemctl restart postgresql
-   ```
-
-Now, PostgreSQL is set up and can be accessed locally or remotely if configured.
-
-### Step 6: Connect to PostgreSQL
-
-You can connect to PostgreSQL from your command line using the following command:
-
-```bash
-psql -U attest -d atlan -h localhost
-```
-
-### Additional Commands
-
-- To list databases: `\l`
-- To list tables: `\dt`
-- To quit: `\q`
-
-## Common Docker Commands
-
-- To stop the containers: `docker-compose down`
-- To rebuild containers without cache: `docker-compose build --no-cache`
-- To view container logs: `docker-compose logs -f`
-
-## Nginx Configuration
-
-The Nginx configuration is stored in the `nginx.conf` file. The Nginx service proxies requests to the Gunicorn server running the Django app and serves static and media files, along with the frontend files.
-
-## Redis Configuration
-
-Redis is used for background tasks and caching. The configuration is stored in the `redis.conf` file.
-
-## Celery Configuration
-
-Celery is configured to handle background tasks in the logistics system, with Redis as the message broker. The worker runs in the `celery` service defined in the `docker-compose.yml` file.
+## ⚙️ Celery Setup
+Celery is used for background tasks and operates with Redis as the broker. The worker is managed in the `celery` service within `docker-compose.yml`.
