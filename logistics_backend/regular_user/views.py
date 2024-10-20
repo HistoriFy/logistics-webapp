@@ -15,6 +15,8 @@ from utils.google_endpoints import PlaceRepository
 from booking.models import Booking
 from booking.serializers import BookingSerializer
 
+from driver.models import SimulationStatus
+
 from .serializers import BookingUserCancelSerializer, UserFeedbackSerializer
 
 class UserBookingListView(APIView):
@@ -138,8 +140,10 @@ class UserCompleteRideView(APIView):
 
             driver.status = "available"
             driver.total_rides += 1
-            # driver.current_latitude = None
-            # driver.current_longitude = None
+            if SimulationStatus.objects.first().simulation_status:
+                driver.current_latitude = None
+                driver.current_longitude = None
+                
             driver.save()
 
             return ({"message": "Ride completed successfully."}, 200)

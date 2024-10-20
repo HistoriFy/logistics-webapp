@@ -327,6 +327,10 @@ class DriverCompleteRideView(APIView):
             #Driver status update
             driver.status = "available"
             driver.total_rides += 1
+            if SimulationStatus.objects.first().simulation_status:
+                driver.current_latitude = None
+                driver.current_longitude = None
+            
             driver.save()
 
             # Send WebSocket update to the driver about ride completion
