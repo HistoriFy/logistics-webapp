@@ -252,18 +252,25 @@ class BookingCreateView(APIView):
                               (pricing_model.per_km_rate * Decimal(distance_in_km)) +
                               (pricing_model.per_minute_rate * Decimal(estimated_duration_seconds / 60)))
             estimated_cost *= pricing_model.surge_multiplier
+            
+            if serializer.validated_data.get("scheduled_time"):
+                scheduled_time = serializer.validated_data["scheduled_time"]
+                status = "scheduled"
+            else:
+                scheduled_time = None
+                status = "pending"
 
             booking = Booking.objects.create(
                 user=user,
                 vehicle_type=vehicle_type,
                 pickup_location=pickup_location,
                 dropoff_location=dropoff_location,
-                status="pending",
+                status=status,
                 estimated_cost=estimated_cost,
                 distance=distance_in_km,
                 payment_method=serializer.validated_data["payment_method"],
                 estimated_duration=estimated_duration,
-                scheduled_time=serializer.validated_data.get("scheduled_time", None),
+                scheduled_time=scheduled_time,
                 pricing=pricing_model
             )
             
@@ -304,7 +311,7 @@ class FetchAllPastBookingsView(APIView):
     @format_response
     def get(self, request):
         user = request.user
-        past_bookings = Booking.objects.filter(user=user, status__in=["completed", "cancelled", "expired"]).order_by("-booking_time")
+        past_bookings = Booking.objects.filter(user=user, status__in=["completed", "cancelled", "expired", "scheduled"]).order_by("-booking_time")
         past_bookings_data = []
 
         for booking in past_bookings:

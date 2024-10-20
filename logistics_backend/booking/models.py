@@ -61,6 +61,7 @@ class Booking(models.Model):
     """
     
     STATUS_CHOICES = [
+        ("scheduled", "Scheduled"),
         ("pending", "Pending"),
         ("accepted", "Accepted"),
         ("on_trip", "On Trip"),
