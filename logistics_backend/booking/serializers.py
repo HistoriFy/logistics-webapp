@@ -55,11 +55,13 @@ class BookingCreateSerializer(serializers.Serializer):
     pickup_address = serializers.CharField(max_length=255)
     pickup_latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
     pickup_longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
-    pickup_place_name = serializers.CharField(max_length=255, required=False)
     dropoff_address = serializers.CharField(max_length=255)
     dropoff_latitude = serializers.DecimalField(max_digits=9, decimal_places=7)
     dropoff_longitude = serializers.DecimalField(max_digits=9, decimal_places=7)
-    dropoff_place_name = serializers.CharField(max_length=255, required=False)
+    place_type = serializers.ChoiceField(
+        choices=[("city", "City"), ("town", "Town"), ("village", "Village")],
+        required=False
+    )
     scheduled_time = serializers.DateTimeField(required=False)
     payment_method = serializers.CharField(max_length=50)
 

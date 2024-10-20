@@ -2,7 +2,8 @@ from django.conf import settings
 import asyncio
 from rest_framework.views import APIView
 from decimal import Decimal
-from datetime import timedelta
+from datetime import timedelta, datetime
+from django.utils import timezone
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -180,6 +181,39 @@ class PriceEstimationView(APIView):
 class BookingCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsRegularUser]
+    
+    def process_booking(self, serializer, booking, simulate_row):
+        scheduled_time = serializer.validated_data.get("scheduled_time")
+        
+        ## find nearby drivers for the booking
+        
+        if scheduled_time:
+            if isinstance(scheduled_time, str):
+                try:
+                    scheduled_time = datetime.fromisoformat(scheduled_time)
+                except ValueError:
+                    raise BadRequest("Invalid format for scheduled_time. Use ISO 8601 format.")
+            
+            if not isinstance(scheduled_time, datetime):
+                raise BadRequest("scheduled_time must be a string or a datetime object.")
+            
+            if scheduled_time.tzinfo is None:
+                raise BadRequest("scheduled_time must have timezone information.")
+            
+            # Convert to UTC
+            scheduled_time = scheduled_time.astimezone(timezone.utc)
+            
+            find_nearby_drivers.apply_async((booking.id,), eta=scheduled_time)
+            
+        else:
+            find_nearby_drivers.delay(booking.id)
+            
+        ## simulate driver movement if simulation is enabled
+
+        if simulate_row.simulation_status and scheduled_time:
+            simulate_driver_movement.apply_async((booking.id,), eta=scheduled_time)
+        elif simulate_row.simulation_status:
+            simulate_driver_movement.delay(booking.id)
 
     @format_response
     def post(self, request):
@@ -219,9 +253,15 @@ class BookingCreateView(APIView):
                 estimated_duration = timedelta(seconds=estimated_duration_seconds)
             except Exception as e:
                 raise BadRequest(str(e))
+            
+            place_type = serializer.validated_data.get("place_type", "city")
+            place_type = place_type.capitalize() if place_type else "City"
 
             try:
-                pricing_model = PricingModel.objects.get(vehicle_type=vehicle_type)
+                pricing_model = PricingModel.objects.get(
+                                    vehicle_type=vehicle_type, 
+                                    region__region_name=place_type
+                                )
             except PricingModel.DoesNotExist:
                 raise BadRequest("Pricing model not found for the selected vehicle type")
 
@@ -245,7 +285,7 @@ class BookingCreateView(APIView):
                 scheduled_time=serializer.validated_data.get("scheduled_time", None),
                 pricing=pricing_model
             )
-
+            
             # update user about pending booking
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -263,18 +303,11 @@ class BookingCreateView(APIView):
                 "estimated_duration": estimated_duration_seconds,
                 "status": booking.status
             }
-
-            #algorithm task call using django-after-response
-            # find_nearby_drivers.after_response(booking.id)
-
-            #algorithm task call using celery
-            find_nearby_drivers.delay(booking.id)
-
-            #driver simulation task call
+            
             simulate_row = SimulationStatus.objects.first()
-            if simulate_row.simulation_status == True:
-                # simulate_driver_movement.after_response(booking.id)
-                simulate_driver_movement.delay(booking.id)
+            
+            # process booking
+            self.process_booking(serializer, booking, simulate_row)
 
             return (response_data, 201)
 
