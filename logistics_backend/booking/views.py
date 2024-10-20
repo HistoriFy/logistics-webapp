@@ -2,8 +2,7 @@ from django.conf import settings
 import asyncio
 from rest_framework.views import APIView
 from decimal import Decimal
-from datetime import timedelta, datetime
-from django.utils import timezone
+from datetime import timedelta, datetime, timezone
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
