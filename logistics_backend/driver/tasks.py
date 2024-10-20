@@ -89,6 +89,7 @@ def _broadcast_location_update(driver, booking=None, status=None):
     message_to_be_sent = {
         "type": "location_update",
         "driver_id": driver.id,
+        "booking_id": booking.id if booking else None,
         "current_latitude": driver.current_latitude,
         "current_longitude": driver.current_longitude,
         "status": status

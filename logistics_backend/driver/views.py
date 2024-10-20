@@ -175,6 +175,9 @@ class DriverCancelBookingView(APIView):
             booking.save()
 
             driver.status = "available"
+            if SimulationStatus.objects.first().simulation_status:
+                driver.current_latitude = None
+                driver.current_longitude = None
             driver.save()
 
             channel_layer = get_channel_layer()
