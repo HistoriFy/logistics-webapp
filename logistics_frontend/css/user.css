@@ -43,6 +43,11 @@ h1, h2 {
   margin-bottom: 20px;
 }
 
+img{
+  width: 100%;
+  height: auto;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -188,6 +193,11 @@ th {
   transition: color 0.3s;
 }
 
+.time-dist{
+  display: flex;
+  justify-content: space-between;
+}
+
 .ride-options {
   display: none;
   margin-top: 20px;
@@ -207,8 +217,8 @@ th {
 }
 
 .ride-icon {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   margin-right: 15px;
   background-color: var(--input-bg-color);
   border-radius: 50%;
@@ -239,6 +249,11 @@ th {
 .ride-option.selected {
   background-color: var(--primary-color);
   color: #fff;
+}
+
+.createBookingBtn {
+  display: none;
+  margin-top: 10px;
 }
 
 .logout-button, .refresh-button {
@@ -308,4 +323,50 @@ th {
   font-weight: bold;
   color: var(--primary-color);
   margin-top: 10px;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  color: var(--primary-color);
+  background: var(--input-bg-color);
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.submit-cancellation, .close-popup{
+  margin-top: 1vh;
+}
+
+.feedback-form {
+  width: 300px;
+  font-size: 14px;
+}
+
+.rating-slider input[type="range"] {
+  width: 100%;
+}
+
+.rating-slider output {
+  display: inline-block;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.required::after {
+  content: "*";
+  color: red;
+  margin-left: 5px;
 }

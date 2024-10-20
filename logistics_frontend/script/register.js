@@ -9,6 +9,8 @@ const passwordInput = document.getElementById('password');
 const passwordToggle = document.getElementById('passwordToggle');
 const registrationForm = document.getElementById('registrationForm');
 
+const API_BASE_URL = 'http://149.102.149.102/api/v1';
+
 // Check for saved user preference and set initial mode
 const isDarkMode = localStorage.getItem('darkMode') === 'true';
 body.classList.toggle('dark-mode', isDarkMode);
@@ -25,11 +27,14 @@ function updateDarkModeToggle(isDark) {
     darkModeToggle.textContent = isDark ? '☀️' : '🌓';
 }
 
-function setActiveToggle(activeToggle) {
+let currentUserType = 'user';
+
+function setActiveToggle(activeToggle, userType) {
     [userToggle, fleetToggle, driverToggle].forEach(toggle => {
         toggle.classList.remove('active');
     });
     activeToggle.classList.add('active');
+    currentUserType = userType;
     companyNameGroup.style.display = 'none';
     licenseNumberGroup.style.display = 'none';
     companyNameGroup.querySelector('input').required = false;
@@ -37,17 +42,17 @@ function setActiveToggle(activeToggle) {
 }
 
 userToggle.addEventListener('click', () => {
-    setActiveToggle(userToggle);
+    setActiveToggle(userToggle, 'user');
 });
 
 fleetToggle.addEventListener('click', () => {
-    setActiveToggle(fleetToggle);
+    setActiveToggle(fleetToggle, 'fleet_owner');
     companyNameGroup.style.display = 'block';
     companyNameGroup.querySelector('input').required = true;
 });
 
 driverToggle.addEventListener('click', () => {
-    setActiveToggle(driverToggle);
+    setActiveToggle(driverToggle, 'driver');
     licenseNumberGroup.style.display = 'block';
     licenseNumberGroup.querySelector('input').required = true;
 });
@@ -64,14 +69,14 @@ registrationForm.addEventListener('submit', (e) => {
     const data = Object.fromEntries(formData.entries());
 
     // Remove unnecessary fields based on user type
-    if (!fleetToggle.classList.contains('active')) {
+    if (currentUserType !== 'fleet_owner') {
         delete data.company_name;
     }
-    if (!driverToggle.classList.contains('active')) {
+    if (currentUserType !== 'driver') {
         delete data.license_number;
     }
 
-    fetch('http://149.102.149.102/api/v1/auth/register/', {
+    fetch(`${API_BASE_URL}/auth/register/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

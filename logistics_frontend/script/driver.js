@@ -1,3 +1,16 @@
+const API_BASE_URL = 'http://149.102.149.102:8000/api/v1';
+const WS_BASE_URL = 'ws://149.102.149.102:8000';
+const token = localStorage.getItem('driverToken');
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (!token) {
+        window.location.href = 'index.html';
+    } else {
+        document.body.style.display = 'block';
+        console.log('Driver is authenticated');
+    }   
+});
+
 const darkModeToggle = document.getElementById('darkModeToggle');
 const body = document.body;
 const isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -46,15 +59,27 @@ function showToast(message, type) {
     }, 3000);
 }
 
-function startSimulation() {
+async function startSimulation() {
     statusDiv.textContent = 'Simulation mode active';
     stopTracking();
-    // Call simulation API here (not provided in the API documentation)
+    fetch(`${API_BASE_URL}/driver/simulate/toggle/`,{
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+        }
+    })
 }
 
-function stopSimulation() {
+async function stopSimulation() {
     statusDiv.textContent = 'Simulation mode inactive';
-    // Call API to stop simulation if necessary (not provided in the API documentation)
+    fetch(`${API_BASE_URL}/driver/simulate/toggle/`,{
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+        }
+    })
 }
 
 function startTracking() {
@@ -105,11 +130,11 @@ function sendDataToBackend(latitude, longitude, speed, heading) {
         heading: heading
     };
 
-    fetch('http://149.102.149.102:8000/api/v1/driver/update-location', {
+    fetch('/driver/update-location', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify(data)
     })
@@ -154,13 +179,13 @@ function updateCurrentOrdersTable() {
         currentOrders.forEach(order => {
             const row = table.insertRow();
             row.innerHTML = `
-                <td>${order.id}</td>
+                <td>${order.bookin_id}</td>
                 <td>${order.pickup_location}</td>
                 <td>${order.dropoff_location}</td>
                 <td>${order.status}</td>
                 <td>
                     <button onclick="validateOTP(${order.id})">Validate OTP</button>
-                    <button onclick="completeRide(${order.id})">Complete Ride</button>
+                    <button onclick="completeRide(${order.id})" id="completeRideBtn">Complete Ride</button>
                     <button onclick="cancelBooking(${order.id})">Cancel</button>
                 </td>
             `;
@@ -209,11 +234,11 @@ function updatePastOrdersTable() {
 }
 
 function toggleAvailability() {
-    fetch('http://149.102.149.102:8000/api/v1/driver/toggle-availability/', {
+    fetch(`${API_BASE_URL}/driver/toggle-availability/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + token
         }
     })
     .then(response => response.json())
@@ -231,11 +256,11 @@ function toggleAvailability() {
 }
 
 function acceptBooking(bookingId) {
-    fetch('http://149.102.149.102:8000/api/v1/driver/accept-booking/', {
+    fetch(`${API_BASE_URL}/driver/accept-booking/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -243,8 +268,10 @@ function acceptBooking(bookingId) {
     .then(data => {
         if (data.success) {
             showToast(data.data.message, 'success');
-            fetchAvailableOrders();
-            fetchCurrentOrders();
+            availableOrders = availableOrders.filter(order => order.id !== bookingId);
+            updateAvailableOrdersTable();            
+            currentOrders.push(data.data.booking);
+            updateCurrentOrdersTable();
         } else {
             showToast(data.error.details, 'error');
         }
@@ -256,11 +283,11 @@ function acceptBooking(bookingId) {
 }
 
 function rejectBooking(bookingId) {
-    fetch('http://149.102.149.102:8000/api/v1/driver/reject-booking/', {
+    fetch(`${API_BASE_URL}/driver/reject-booking/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -282,11 +309,11 @@ function rejectBooking(bookingId) {
 function validateOTP(bookingId) {
     const otp = prompt("Enter OTP:");
     if (otp) {
-        fetch('http://149.102.149.102:8000/api/v1/driver/validate-otp/', {
+        fetch(`${API_BASE_URL}/driver/validate-otp/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({ booking_id: bookingId, otp: otp })
         })
@@ -294,7 +321,8 @@ function validateOTP(bookingId) {
         .then(data => {
             if (data.success) {
                 showToast(data.data.message, 'success');
-                fetchCurrentOrders();
+                completeRide(bookingId);
+                updateCurrentOrdersTable();
             } else {
                 showToast(data.error.details, 'error');
             }
@@ -307,11 +335,11 @@ function validateOTP(bookingId) {
 }
 
 function completeRide(bookingId) {
-    fetch('http://149.102.149.102:8000/api/v1/driver/bookings/complete/driver/', {
+    fetch(`${API_BASE_URL}/driver/bookings/complete/driver/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify({ booking_id: bookingId })
     })
@@ -319,7 +347,7 @@ function completeRide(bookingId) {
     .then(data => {
         if (data.success) {
             showToast(data.data.message, 'success');
-            fetchCurrentOrders();
+            updateCurrentOrdersTable();
             fetchPastOrders();
         } else {
             showToast(data.error.details, 'error');
@@ -334,11 +362,11 @@ function completeRide(bookingId) {
 function cancelBooking(bookingId) {
     const feedback = prompt("Enter cancellation reason:");
     if (feedback) {
-        fetch('http://149.102.149.102:8000/api/v1/driver/bookings/cancel/driver/', {
+        fetch(`${API_BASE_URL}/driver/bookings/cancel/driver/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({ booking_id: bookingId, feedback: feedback })
         })
@@ -346,7 +374,7 @@ function cancelBooking(bookingId) {
         .then(data => {
             if (data.success) {
                 showToast(data.data.message, 'success');
-                fetchCurrentOrders();
+                updateCurrentOrdersTable();
             } else {
                 showToast(data.error.details, 'error');
             }
@@ -358,51 +386,78 @@ function cancelBooking(bookingId) {
     }
 }
 
-async function fetchCurrentOrders() {
+async function fetchAvailableOrders() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/driver/current-orders', {
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
+        const socket = new WebSocket(`${WS_BASE_URL}/driver/ws/bookings/?token=${token}`);
+
+        socket.onopen = function(event) {
+            console.log("WebSocket connection established for available orders");
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+                availableOrders = data.data.available_orders;
+                console.log('Available orders:', availableOrders);  
+                updateAvailableOrdersTable();
+        };
+
+        socket.onerror = function(error) {
+            showToast('Failed to fetch available orders', 'error');
+            console.error('WebSocket Error:', error);
+        };
+
+        socket.onclose = function(event) {
+            if (event.wasClean) {
+                console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+            } else {
+                console.error('WebSocket connection died');
             }
-        });
-        const data = await response.json();
-        if (data.success) {
-            currentOrders = data.data.current_orders;
-            updateCurrentOrdersTable();
-        } else {
-            showToast(data.error.details, 'error');
-        }
+        };
     } catch (error) {
-        showToast('Failed to fetch current orders', 'error');
+        showToast('Failed to establish WebSocket connection', 'error');
         console.error('Error:', error);
     }
 }
 
-async function fetchAvailableOrders() {
+async function fetchCurrentOrders() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/driver/available-orders', {
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
+        const socket = new WebSocket(`${WS_BASE_URL}/driver/ws/available_bookings/?token=${token}`);
+
+        socket.onopen = function(event) {
+            console.log("WebSocket connection established for current orders");
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+                availableOrders = data.data.available_orders;
+                console.log('Current orders:', currentOrders); 
+                updateCurrentOrdersTable();
+        };
+
+        socket.onerror = function(error) {
+            showToast('Failed to fetch current orders', 'error');
+            console.error('WebSocket Error:', error);
+        };
+
+        socket.onclose = function(event) {
+            if (event.wasClean) {
+                console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+            } else {
+                console.error('WebSocket connection died');
             }
-        });
-        const data = await response.json();
-        if (data.success) {
-            availableOrders = data.data.available_orders;
-            updateAvailableOrdersTable();
-        } else {
-            showToast(data.error.details, 'error');
-        }
+        };
     } catch (error) {
-        showToast('Failed to fetch available orders', 'error');
+        showToast('Failed to establish WebSocket connection', 'error');
         console.error('Error:', error);
     }
 }
 
 async function fetchPastOrders() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/driver/bookings/past/', {
+        const response = await fetch(`${API_BASE_URL}/booking/fetch-all-past-bookings/`, {
+            method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
+                'Authorization': 'Bearer ' + token
             }
         });
         const data = await response.json();
@@ -419,7 +474,7 @@ async function fetchPastOrders() {
 }
 
 function initializeWebSockets() {
-    const jwtToken = localStorage.getItem('token');
+    const jwtToken = token;
 
     driverAvailableBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${jwtToken}`);
     
@@ -444,7 +499,6 @@ function initializeWebSockets() {
         console.log(`[error] Driver Available Bookings WebSocket error: ${error.message}`);
     };
 
-    // Driver Confirmed Bookings WebSocket
     driverConfirmedBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${jwtToken}`);
     
     driverConfirmedBookingsWebSocket.onopen = function(e) {
@@ -504,7 +558,7 @@ function handleDriverConfirmedBookingsWebSocketMessage(data) {
 function updateBookingStatus(message) {
     console.log('Booking status updated:', message);
     showToast(`Booking ${message.booking_id} status: ${message.status}`, 'info');
-    fetchCurrentOrders();
+    updateCurrentOrdersTable();
 }
 
 function updateOTP(data) {
@@ -514,7 +568,7 @@ function updateOTP(data) {
 
 function updateDriverLocation(data) {
     console.log('Driver location updated:', data);
-    // You might want to update a map here if you're using one
+    // has to be implemented
 }
 
 function updateAvailableBookings(message) {
@@ -524,7 +578,7 @@ function updateAvailableBookings(message) {
 
 function updateDriverBookingStatus(message) {
     console.log('Driver booking status update:', message);
-    fetchCurrentOrders();
+    updateCurrentOrdersTable();
 }
 
 document.getElementById('refreshPastOrders').addEventListener('click', fetchPastOrders);

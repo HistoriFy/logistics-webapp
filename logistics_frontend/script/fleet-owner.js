@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('fleetOwnerToken');
     if (!token) {
         window.location.href = 'index.html';
     } else {

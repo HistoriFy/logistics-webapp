@@ -32,4 +32,4 @@ Server starts from index.html file.
 
 ## Notes
 
-- Few pages such as user dashboard, driver dashboard are still incomplete 🙏
+- driver dashboard still requires some finishing touches

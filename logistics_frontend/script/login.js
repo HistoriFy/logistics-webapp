@@ -66,13 +66,14 @@ const darkModeToggle = document.getElementById('darkModeToggle');
                 if (data.success) {
                     alert('Login successful');
 
-                    localStorage.setItem('token', data.data.token);
-
                     if (inputData.user_type === 'user') {
+                        localStorage.setItem('userToken', data.data.token);
                         window.location.href = 'user-dashboard.html'; // Change to your user dashboard
                     } else if (inputData.user_type === 'fleet_owner') {
+                        localStorage.setItem('fleetOwnerToken', data.data.token);
                         window.location.href = 'fleet-owner-dashboard.html'; // Change to your fleet owner dashboard
                     } else if (inputData.user_type === 'driver') {
+                        localStorage.setItem('driverToken', data.data.token);
                         window.location.href = 'driver-dashboard.html'; // Change to your driver dashboard
                     }
 

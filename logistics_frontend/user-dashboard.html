@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logistics Dashboard v5</title>
+    <title>Welcome to your User Dashboard!</title>
     <link rel="stylesheet" href="css/user.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>Logistics Dashboard v5</h1>
+            <h1>Welcome to your User Dashboard!</h1>
             <div>
                 <button id="darkModeToggle" class="dark-mode-toggle">🌓</button>
                 <button id="logoutButton" class="logout-button">Logout</button>
@@ -27,25 +27,38 @@
                 <h2>Place New Order</h2>
                 <form id="newOrderForm">
                     <div class="form-group">
-                        <label for="pickupAddress">Pickup Address</label>
+                        <label for="pickupAddress" class="required">Pickup Address</label>
                         <input type="text" id="pickupAddress" required>
                         <div id="pickupAddressAutocomplete" class="autocomplete-items"></div>
                     </div>
                     <div class="form-group">
-                        <label for="deliveryAddress">Delivery Address</label>
+                        <label for="deliveryAddress" class="required">Delivery Address</label>
                         <input type="text" id="deliveryAddress" required>
                         <div id="deliveryAddressAutocomplete" class="autocomplete-items"></div>
                     </div>
                     <div class="form-group">
-                        <label for="paymentMethod">Payment Method</label>
+                        <label for="paymentMethod" class="required">Payment Method</label>
                         <select id="paymentMethod" required>
                             <option value="cash">Cash</option>
                             <option value="online">Online</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="placeType" class="required">Place Type</label>
+                        <select id="placeType" required>
+                            <option value="town">Town</option>
+                            <option value="city">City</option>
+                            <option value="village">Village</option>
+                        </select>
+                    </div>                    
+                    <div class="form-group">
+                        <label for="scheduledTime">Schedule Time in Future for Pickup</label>
+                        <input type="datetime-local" id="scheduledTime">
+                    </div>
                     <button type="submit">Get Price Estimation</button>
                 </form>
                 <div id="rideOptions" class="ride-options"></div>
+                <button id="createBookingBtn" class="createBookingBtn">Confirm Booking</button>
             </div>
         </div>
 
@@ -73,11 +86,27 @@
                 </table>
                 <button id="refreshPastOrders" class="refresh-button">Refresh Past Orders</button>
             </div>
+            <div id="popup" class="popup" style="display: none;">
+                <div id="popup-content" class="popup-content"></div>
+            </div>
         </div>
     </div>
 
     <div id="toast" class="toast"></div>
 
-    <script src="script/user.js"></script>
+    <div id="cancelBookingPopup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Reason for Canceling the Order</h2>
+            <input type="text" id="cancellationReason" placeholder="Enter reason here" required>
+            <button id="submitCancellation" class="submit-cancellation">Submit</button>
+            <button id="closePopup" class="close-popup">Close</button>
+        </div>
+    </div>
+
+    <script src="script/user/utils.js"></script>
+    <script src="script/user/websockets.js"></script>
+    <script src="script/user/current-booking.js"></script>
+    <script src="script/user/feedback.js"></script>
+    <script src="script/user/past-orders.js"></script>
 </body>
 </html>
