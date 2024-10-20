@@ -1,5 +1,4 @@
-from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timezone
 from rest_framework import serializers
 
 from .models import Booking, Location
@@ -82,7 +81,7 @@ class BookingCreateSerializer(serializers.Serializer):
         if not isinstance(value, datetime) or value.tzinfo is None:
             raise serializers.ValidationError("scheduled_time must be a timezone-aware datetime object.")
         
-        if value.astimezone(timezone.utc) < timezone.now():
+        if value.astimezone(timezone.utc) < datetime.now(timezone.utc):
             raise serializers.ValidationError("Scheduled time must be in the future.")
         
         return value

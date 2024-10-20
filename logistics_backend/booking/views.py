@@ -280,6 +280,7 @@ class BookingCreateView(APIView):
             response_data = {
                 "booking_id": booking.id,
                 "estimated_cost": float(booking.estimated_cost),
+                "scheduled_time": booking.scheduled_time,
                 "distance": booking.distance,
                 "estimated_duration": estimated_duration_seconds,
                 "status": booking.status
