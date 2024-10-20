@@ -2,7 +2,7 @@ from django.conf import settings
 import asyncio
 from rest_framework.views import APIView
 from decimal import Decimal
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -185,30 +185,12 @@ class BookingCreateView(APIView):
         scheduled_time = serializer.validated_data.get("scheduled_time")
         
         ## find nearby drivers for the booking
-        
         if scheduled_time:
-            if isinstance(scheduled_time, str):
-                try:
-                    scheduled_time = datetime.fromisoformat(scheduled_time)
-                except ValueError:
-                    raise BadRequest("Invalid format for scheduled_time. Use ISO 8601 format.")
-            
-            if not isinstance(scheduled_time, datetime):
-                raise BadRequest("scheduled_time must be a string or a datetime object.")
-            
-            if scheduled_time.tzinfo is None:
-                raise BadRequest("scheduled_time must have timezone information.")
-            
-            # Convert to UTC
-            scheduled_time = scheduled_time.astimezone(timezone.utc)
-            
             find_nearby_drivers.apply_async((booking.id,), eta=scheduled_time)
-            
         else:
             find_nearby_drivers.delay(booking.id)
             
         ## simulate driver movement if simulation is enabled
-
         if simulate_row.simulation_status and scheduled_time:
             simulate_driver_movement.apply_async((booking.id,), eta=scheduled_time)
         elif simulate_row.simulation_status:

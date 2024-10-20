@@ -1,3 +1,5 @@
+from django.utils import timezone
+from datetime import datetime
 from rest_framework import serializers
 
 from .models import Booking, Location
@@ -68,6 +70,21 @@ class BookingCreateSerializer(serializers.Serializer):
     def validate_vehicle_type_id(self, value):
         if not VehicleType.objects.filter(vehicle_type_id=value).exists():
             raise serializers.ValidationError("Invalid vehicle type.")
+        return value
+    
+    def validate_scheduled_time(self, value):
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value)
+            except ValueError:
+                raise serializers.ValidationError("Invalid format for scheduled_time. Use ISO 8601 format.")
+        
+        if not isinstance(value, datetime) or value.tzinfo is None:
+            raise serializers.ValidationError("scheduled_time must be a timezone-aware datetime object.")
+        
+        if value.astimezone(timezone.utc) < timezone.now():
+            raise serializers.ValidationError("Scheduled time must be in the future.")
+        
         return value
 
     def validate(self, data):
