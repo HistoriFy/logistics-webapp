@@ -1,3 +1,5 @@
+const API_BASE_URL = 'http://149.102.149.102:8000/api/v1';
+
 document.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem('fleetOwnerToken');
     if (!token) {
@@ -7,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('User is authenticated');
     }
 });
-const jwtToken = `Bearer ${localStorage.getItem('token')}`;
+const jwtToken = `Bearer ${localStorage.getItem('fleetOwnerToken')}`;
 
 // Dark mode toggle
 const darkModeToggle = document.getElementById('darkModeToggle');
@@ -61,16 +63,13 @@ function showToast(message, type) {
     toast.style.opacity = 1;
     setTimeout(() => {
         toast.style.opacity = 0;
-        setTimeout(() => {
-            toast.remove(); 
-        }, 300); 
     }, 3000);
 }
 
 // Fetch vehicle types and populate the select dropdown
 async function fetchVehicleTypes() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/vehicle_type/get_names/', {
+        const response = await fetch(`${API_BASE_URL}/vehicle_type/get_names/`, {
             headers: {
                 'Authorization': jwtToken,  // Ensure the JWT token is available
                 'Content-Type': 'application/json'
@@ -102,7 +101,7 @@ fetchVehicleTypes();
 // Fetch drivers
 async function fetchDrivers() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/view_drivers/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/view_drivers/`, {
             headers: {
                 'Authorization': jwtToken
             }
@@ -133,7 +132,7 @@ async function fetchDrivers() {
 // Fetch vehicles
 async function fetchVehicles() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/view_vehicles/', {
+        const response = await fetch('/api/v1/fleet_owner/view_vehicles/', {
             headers: {
                 'Authorization': jwtToken
             }
@@ -168,7 +167,7 @@ document.getElementById('addDriverForm').addEventListener('submit', async (e) =>
     const formData = new FormData(e.target);
     const driverData = Object.fromEntries(formData.entries());
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/add_driver/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/add_driver/`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -194,7 +193,7 @@ document.getElementById('addVehicleForm').addEventListener('submit', async (e) =
     const formData = new FormData(e.target);
     const vehicleData = Object.fromEntries(formData.entries());
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/add_vehicle/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/add_vehicle/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -220,7 +219,7 @@ document.getElementById('assignVehicleForm').addEventListener('submit', async (e
     const formData = new FormData(e.target);
     const assignData = Object.fromEntries(formData.entries());
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/assign_vehicle/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/assign_vehicle/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -246,7 +245,7 @@ document.getElementById('deassignVehicleForm').addEventListener('submit', async 
     const formData = new FormData(e.target);
     const deassignData = Object.fromEntries(formData.entries());
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/deassign_vehicle/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/deassign_vehicle/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -269,7 +268,7 @@ document.getElementById('deassignVehicleForm').addEventListener('submit', async 
 // Fetch vehicles by driver
 async function fetchVehiclesByDriver() {
     try {
-        const response = await fetch('http://149.102.149.102:8000/api/v1/fleet_owner/view_vehicles_by_driver/', {
+        const response = await fetch(`${API_BASE_URL}/fleet_owner/view_vehicles_by_driver/`, {
             headers: {
                 'Authorization': jwtToken
             }

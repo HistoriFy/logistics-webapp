@@ -454,7 +454,7 @@ async function fetchCurrentOrders() {
 
 async function fetchPastOrders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/booking/fetch-all-past-bookings/`, {
+        const response = await fetch(`${API_BASE_URL}/driver/bookings/past/`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -474,9 +474,8 @@ async function fetchPastOrders() {
 }
 
 function initializeWebSockets() {
-    const jwtToken = token;
 
-    driverAvailableBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${jwtToken}`);
+    driverAvailableBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${token}`);
     
     driverAvailableBookingsWebSocket.onopen = function(e) {
         console.log("[open] Driver Available Bookings WebSocket connection established");
@@ -499,7 +498,7 @@ function initializeWebSockets() {
         console.log(`[error] Driver Available Bookings WebSocket error: ${error.message}`);
     };
 
-    driverConfirmedBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${jwtToken}`);
+    driverConfirmedBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${token}`);
     
     driverConfirmedBookingsWebSocket.onopen = function(e) {
         console.log("[open] Driver Confirmed Bookings WebSocket connection established");
