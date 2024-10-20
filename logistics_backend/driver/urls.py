@@ -7,7 +7,8 @@ from .views import (AcceptBookingView,
                    DriverCancelBookingView,
                    DriverCompleteRideView,
                    DriverSimulateToggleView,
-                   FetchAllPastBookingsView)
+                   FetchAllPastBookingsView,
+                   GPSTrackingCreateView)
 
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("bookings/complete/driver/", DriverCompleteRideView.as_view(), name="complete-ride-driver"),
     path("simulate/toggle/", DriverSimulateToggleView.as_view(), name="simulate-toggle"),
     path("bookings/past/", FetchAllPastBookingsView.as_view(), name="fetch-past-bookings"),
+    path("gps-tracking/", GPSTrackingCreateView.as_view(), name="gps-tracking"),
 ]
