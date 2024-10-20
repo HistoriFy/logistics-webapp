@@ -8,7 +8,7 @@ This repository provides a full-featured logistics system, consisting of both ba
 
 > **Note**: If there's a communication issue between the frontend and backend due to protocol mismatch, please enable `Insecure Content` in your browser's settings for the frontend URL.
 
-[Chrome Update Page settings](chrome://settings/content/siteDetails?site=https%3A%2F%2Flogisticswebapprathore.fyi).
+[Chrome Update Page settings](https://i.ibb.co/1RPCKbp/step-1.png).
 
 - **Postman Collection:** [Logistics API](https://www.postman.com/rathore10/logistics)
 - **System Architecture:** [System Diagram](https://i.ibb.co/pbLxs1p/logistics-Arch.png)
