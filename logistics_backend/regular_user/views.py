@@ -56,8 +56,8 @@ class UserCancelBookingView(APIView):
             booking = Booking.objects.select_for_update().get(id=booking_id)
             driver = booking.driver
 
-            if booking.status not in ["pending", "accepted", "on_trip"]:
-                raise BadRequest("Only bookings that are pending, accepted or in-progress can be cancelled.")
+            if booking.status not in ["pending", "accepted", "on_trip", "scheduled"]:
+                raise BadRequest("Only bookings that are scheduled, pending, accepted or in-progress can be cancelled.")
 
             if booking.user != user:
                 raise Unauthorized("You are not authorized to cancel this booking.")

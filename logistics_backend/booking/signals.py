@@ -14,6 +14,8 @@ def send_booking_status_update(sender, instance, created, **kwargs):
         channel_layer = get_channel_layer()
         group_name = f"user_{instance.user.id}_bookings"
         
+        serializer = BookingSerializer(instance)
+        
         if instance.driver:
             driver_name = Driver.objects.get(id=instance.driver_id).name
             driver_rating = Driver.objects.get(id=instance.driver_id).rating
