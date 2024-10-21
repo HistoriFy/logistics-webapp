@@ -454,11 +454,13 @@ async function fetchCurrentOrders() {
 
 async function fetchPastOrders() {
     try {
+
         const response = await fetch(`${API_BASE_URL}/driver/bookings/past/`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
             }
+            
         });
         const data = await response.json();
         if (data.success) {
