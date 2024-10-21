@@ -6,6 +6,7 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from vehicle_type.models import VehicleType
 from authentication.models import Driver
 from .models import Booking
 
@@ -14,12 +15,22 @@ from driver.helpers import generate_random_location
 
 def notify_driver_about_booking(driver, booking):
     channel_layer = get_channel_layer()
+    
+    vehicle_weight_and_dimensions = VehicleType.objects.get(vehicle_type_id=booking.vehicle_type)
+    vehicle_type_url = vehicle_weight_and_dimensions.image_url
+    vehicle_weight = vehicle_weight_and_dimensions.capacity
+    vehicle_dimensions = vehicle_weight_and_dimensions.description
+    
     booking_data = {
         "booking_id": booking.id,
         "pickup_location": booking.pickup_location.address,
         "dropoff_location": booking.dropoff_location.address,
         "estimated_cost": float(booking.estimated_cost),
         "distance": booking.distance,
+        "vehicle_type_id": booking.vehicle_type,
+        "vehicle_type_url": vehicle_type_url,
+        "vehicle_weight": vehicle_weight,
+        "vehicle_dimensions": vehicle_dimensions,
         "status": booking.status,
     }
 
