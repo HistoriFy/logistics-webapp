@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://149.102.149.102:8000/api/v1';
+const API_BASE_URL = 'https://18122002.xyz/api/v1';
 
 document.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem('fleetOwnerToken');

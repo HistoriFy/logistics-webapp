@@ -2,10 +2,11 @@
 
 This repository provides a full-featured logistics system, consisting of both backend and frontend. The backend is built with Django Rest Framework (DRF), Docker, Celery, Redis, PostgreSQL, and the frontend uses HTML, CSS, and JavaScript.
 
-- **Live Backend (REST APIs):** [Backend API URL](https://149.102.149.102:8000)
-- **Live Backend (WebSockets):** `ws://149.102.149.102:8000`
 - **Live Frontend:** [Logistics Frontend](https://logisticswebapprathore.fyi/)
 - **Postman Collection:** [Logistics API](https://www.postman.com/rathore10/logistics)
+
+- **Live Backend (REST APIs):** `https://18122002.xyz`
+- **Live Backend (WebSockets):** `wss://18122002.xyz`
 - **System Architecture:** [System Diagram](https://i.ibb.co/pbLxs1p/logistics-Arch.png)
 - **DB Architecture:** [Database Diagram](https://drive.proton.me/urls/ERC3ZN4XJ8#PZKoBJITbQjQ)
 - **System Design Trade-offs Document:** [Design Trade-offs](https://drive.proton.me/urls/6DPWEZH84R#5AGew2r5J9Oi)
@@ -87,7 +88,7 @@ Custom decorators for API responses and error handling for consistent and user-f
 ## 🛠️ Prerequisites
 
 - **Docker & Docker Compose:** Ensure both are installed on your system.
-- **PostgreSQL:** If not using Docker, manually install PostgreSQL.
+- **PostgreSQL:** PostgreSQL is used as the primary database. You can install it locally or use a cloud service. [Install PostgreSQL](https://www.postgresql.org/download/)
 
 ## ⚙️ Setup Instructions
 

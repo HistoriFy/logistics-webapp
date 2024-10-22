@@ -54,7 +54,7 @@ const darkModeToggle = document.getElementById('darkModeToggle');
                 inputData.user_type = 'driver';
             }
             
-            fetch('http://149.102.149.102:8000/api/v1/auth/login/', {
+            fetch('http://18122002.xyz/api/v1/auth/login/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

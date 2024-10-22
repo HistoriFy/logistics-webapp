@@ -12,7 +12,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
       - redis
     networks:
       - logistics_network
@@ -21,10 +20,8 @@ services:
     image: nginx:latest
     ports:
       - "80:80"
-      - "443:443"  # Added HTTPS port
     volumes:
       - ./docker-compose-config/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./docker-compose-config/ssl:/etc/nginx/ssl  # Mount SSL certificates
       - static_volume:/app/static
       - media_volume:/app/media
     depends_on:
@@ -32,18 +29,11 @@ services:
     networks:
       - logistics_network
 
-  db:
-    image: postgres:13
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    env_file: .env
-    networks:
-      - logistics_network
-
   redis:
     image: redis:alpine
     volumes:
       - ./docker-compose-config/redis.conf:/usr/local/etc/redis/redis.conf
+    # command: sh -c "sysctl -w vm.overcommit_memory=1 && redis-server /usr/local/etc/redis/redis.conf"
     privileged: true
     ports:
       - "6379:6379"
@@ -56,7 +46,6 @@ services:
     env_file: .env
     depends_on:
       - redis
-      - db
     networks:
       - logistics_network
 
