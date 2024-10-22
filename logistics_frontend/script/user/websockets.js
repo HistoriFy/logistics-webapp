@@ -70,6 +70,11 @@ function updateCurrentOrder(message) {
         
         // Add feedback form if status is completed
         if (message.message.status === 'completed' && !orderElement.querySelector('.feedback-form')) {
+            //remove cancel button
+            const cancelBtn = orderElement.querySelector(`[onclick*="cancelBooking(${message.message.id})"]`);
+            if (cancelBtn) {
+                cancelBtn.remove();
+            }
             const feedbackForm = createFeedbackForm(message.message.id);
             orderElement.appendChild(feedbackForm);
         }
@@ -95,6 +100,10 @@ function updateCurrentOrder(message) {
         `;
         
         if (message.message.status === 'completed') {
+            const cancelBtn = orderElement.querySelector(`[onclick*="cancelBooking(${message.message.id})"]`);
+            if (cancelBtn) {
+                cancelBtn.remove();
+            }
             const feedbackForm = createFeedbackForm(message.message.id);
             newOrderElement.appendChild(feedbackForm);
         }

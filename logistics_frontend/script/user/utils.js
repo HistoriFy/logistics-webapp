@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://149.102.149.102:8000/api/v1';
-const WS_BASE_URL = 'ws://149.102.149.102:8000';
+const API_BASE_URL = 'https://149.102.149.102:8000/api/v1';
+const WS_BASE_URL = 'wss://149.102.149.102:8000';
 const token = localStorage.getItem('userToken');
 
 let websocket;

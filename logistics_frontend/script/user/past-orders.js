@@ -24,7 +24,7 @@ async function fetchPastOrders() {
                     hour12: true
                 });
 
-                const estimatedCostWithSymbol = `₹${order.fare}`;
+                const estimatedCostWithSymbol = `₹${order.estimated_cost}`;
 
                 const row = pastOrderTable.insertRow();
                 row.innerHTML = `

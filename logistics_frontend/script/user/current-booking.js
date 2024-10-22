@@ -34,7 +34,7 @@ async function initAutocomplete(inputId) {
                 autocompleteDiv.innerHTML = '';
                 autocompleteDiv.style.display = 'none';
             }
-        }, 200); // 200 ms delay for debouncing
+        }, 50); // 50 ms delay for debouncing
     });
 
     document.addEventListener('click', function(e) {

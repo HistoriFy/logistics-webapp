@@ -50,6 +50,23 @@ h1, h2 {
     margin-bottom: 20px;
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.availability-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.availability-label {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
 .card {
     background-color: var(--card-bg-color);
     border-radius: 10px;
@@ -215,32 +232,8 @@ input:checked + .slider:before {
     font-style: italic;
 }
 
-.no-current-bookings {
-    text-align: center;
-    padding: 20px;
-    font-style: italic;
-    color: var(--text-color);
-}
-
-.no-current-bookings {
-    text-align: center;
-    font-style: italic;
-    color: var(--text-color);
-}
-
-.no-available-bookings {
-    text-align: center;
-    padding: 20px;
-    font-style: italic;
-    color: var(--text-color);
-}
-
-.no-available-bookings {
-    text-align: center;
-    font-style: italic;
-    color: var(--text-color);
-}
-
+.no-current-bookings,
+.no-available-bookings,
 .no-past-bookings {
     text-align: center;
     padding: 20px;
@@ -248,26 +241,7 @@ input:checked + .slider:before {
     color: var(--text-color);
 }
 
-.no-past-bookings {
-    text-align: center;
-    font-style: italic;
-    color: var(--text-color);
-}
-
-.accept-button {
-    padding: 8px 16px;
-    background-color: #2ecc71;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.accept-button:hover {
-    background-color: #27ae60;
-}
-
+.accept-button,
 .complete-button {
     padding: 8px 16px;
     background-color: #2ecc71;
@@ -278,6 +252,7 @@ input:checked + .slider:before {
     transition: background-color 0.3s;
 }
 
+.accept-button:hover,
 .complete-button:hover {
     background-color: #27ae60;
 }
@@ -294,16 +269,7 @@ input:checked + .slider:before {
     font-size: 20px;
 }
 
-.reject-button {
-    padding: 8px 16px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
+.reject-button,
 .cancel-button {
     padding: 8px 16px;
     background-color: #e74c3c;
@@ -314,11 +280,12 @@ input:checked + .slider:before {
     transition: background-color 0.3s;
 }
 
+.reject-button:hover,
 .cancel-button:hover {
     background-color: #c0392b;
 }
 
-.otp-button{
+.otp-button {
     padding: 8px 16px;
     background-color: #3498db;
     color: white;
@@ -330,4 +297,21 @@ input:checked + .slider:before {
 
 .otp-button:hover {
     background-color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-controls {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .availability-container {
+        order: -1;
+    }
 }

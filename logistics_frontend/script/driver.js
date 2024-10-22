@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://149.102.149.102:8000/api/v1';
-const WS_BASE_URL = 'ws://149.102.149.102:8000';
+const API_BASE_URL = 'https://149.102.149.102:8000/api/v1';
+const WS_BASE_URL = 'wss://149.102.149.102:8000';
 const token = localStorage.getItem('driverToken');
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -133,7 +133,7 @@ function sendDataToBackend(latitude, longitude, speed, heading) {
         heading: heading
     };
 
-    fetch('/driver/update-location', {
+    fetch(`${API_BASE_URL}/driver/gps-tracking`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -173,52 +173,69 @@ function handleError(error) {
     console.error('Geolocation error:', error);
 }
 
-function updateCurrentOrdersTable() {
+function updateCurrentOrdersTable(currentOrders) {
     const table = document.getElementById('currentOrdersTable').getElementsByTagName('tbody')[0];
-    table.innerHTML = '';
-    if (!currentOrders || Object.keys(currentOrders).length === 0) {
-        table.innerHTML = '<tr><td colspan="8" class="no-past-bookings">No current bookings</td></tr>';
+    let existingRow = document.getElementById(`current-booking-row-${currentOrders.booking_id}`);
+
+    if (currentOrders.status === "cancelled_by_user" || currentOrders.status === "completed") {
+        console.log(`status inside cancelled if case ${currentOrders.booking_id}, ${currentOrders.status}`);
+        if (existingRow) {
+            existingRow.remove();
+        }
+        currentBookingIds.delete(currentOrders.booking_id);
+        return;
+    }
+
+    console.log(`status outside cancelled if case ${currentOrders.booking_id}, ${currentOrders.status}`);
+
+    const emptyRow = document.querySelector(`.no-current-bookings`);
+    if (emptyRow) {
+        emptyRow.remove();
+    }
+
+    if (!existingRow) {
+        existingRow = table.insertRow();
+        existingRow.id = `current-booking-row-${currentOrders.booking_id}`;
+    }
+
+    let rowHtml = '';
+
+    rowHtml += `<td>${currentOrders.booking_id || existingRow.cells[0]?.innerText || ''}</td>`;
+    rowHtml += `<td>${currentOrders.status || existingRow.cells[1]?.innerText || ''}</td>`;
+
+    if (currentOrders.phone_number) {
+        rowHtml += `<td><a href="tel:${currentOrders.phone_number}">${currentOrders.phone_number}</a></td>`;
     } else {
-        if (!currentBookingIds.has(currentOrders.booking_id)) {
-            const emptyRow = document.querySelector(`.no-current-bookings`);
-            if (emptyRow) {
-                emptyRow.remove();
-            }
+        rowHtml += `<td>${existingRow.cells[2]?.innerText || ''}</td>`;
+    }
 
-            const row = table.insertRow();
-            row.id = `current-booking-row-${availableOrders.booking_id}`;
-            row.innerHTML = `
-                <td>${availableOrders.booking_id}</td>
-                <td>${availableOrders.status}</td>
-                <td>
-                    <a href=tel:${availableOrders.phone}>${availableOrders.phone}</a>
-                </td>
-                <td>${availableOrders.pickup_location}</td>
-                <td>${availableOrders.dropoff_location}</td>
-                <td>
-                    <a href="https://www.google.com/maps/search/?api=1&origin=${availableOrders.pickup_location}&destination=${availableOrders.dropoff_location}" target="_blank">Navigate</a>
-                </td>
-                <td>
-                    <button class="otp-button" onclick="validateOTP(${availableOrders.booking_id})">Validate OTP</button>
-                </td>
-                <td>
-                    <button class="complete-button" onclick="completeRide(${availableOrders.id})">Complete Ride</button>
-                </td>
-                <td>
-                    <button class="cancel-button" onclick="cancelBooking(${availableOrders.id})">Cancel</button>
-                </td>
-            `;
+    rowHtml += `<td>${currentOrders.pickup_location || existingRow.cells[3]?.innerText || ''}</td>`;
+    rowHtml += `<td>${currentOrders.dropoff_location || existingRow.cells[4]?.innerText || ''}</td>`;
 
-            currentBookingIds.add(availableOrders.booking_id);
-        }
-        else {
-            const row = document.getElementById(`current-booking-row-${availableOrders.booking_id}`);
-            row.querySelector('td:nth-child(2)').textContent = availableOrders.status;
-        }
+    if (currentOrders.pickup_location && currentOrders.dropoff_location) {
+        rowHtml += `<td><a href="https://www.google.com/maps/search/?api=1&origin=${currentOrders.pickup_location}&destination=${currentOrders.dropoff_location}" target="_blank" style="color: var(--text-color);">Navigate</a></td>`;
+    } else {
+        rowHtml += `<td>${existingRow.cells[5]?.innerHTML || ''}</td>`;
+    }
+
+    if (currentOrders.booking_id) {
+        rowHtml += `<td><button class="otp-button" onclick="validateOTP(${currentOrders.booking_id})">Validate OTP</button></td>`;
+        rowHtml += `<td><button class="complete-button" onclick="completeRide(${currentOrders.booking_id})">Complete Ride</button></td>`;
+        rowHtml += `<td><button class="cancel-button" onclick="cancelBooking(${currentOrders.booking_id})">Cancel</button></td>`;
+    } else {
+        rowHtml += '<td></td><td></td><td></td>'; // Empty placeholders if no booking_id
+    }
+
+    existingRow.innerHTML = rowHtml;
+
+    console.log(`row updated for ${currentOrders.booking_id}, ${currentOrders.status}`);
+
+    if (!currentBookingIds.has(currentOrders.booking_id)) {
+        currentBookingIds.add(currentOrders.booking_id);
     }
 }
 
-function updateAvailableOrdersTable() {
+function updateAvailableOrdersTable(availableOrders) {
     const table = document.getElementById('availableOrdersTable').getElementsByTagName('tbody')[0];
 
     if (!availableOrders || Object.keys(availableOrders).length === 0) {
@@ -229,30 +246,51 @@ function updateAvailableOrdersTable() {
         </tr>`;    
     } else {
         if (!addedBookingIds.has(availableOrders.booking_id)) {
+
+            if (availableOrders.status === "cancelled") {
+                const rowToRemove = document.getElementById(`available-booking-row-${currentOrders.booking_id}`);
+                if (rowToRemove) {
+                    rowToRemove.remove();
+                }
+    
+                addedBookingIds.delete(currentOrders.booking_id);
+                return;
+            }
+
             const emptyRow = document.querySelector(`.no-available-bookings`);
             if (emptyRow) {
                 emptyRow.remove();
             }
+
             const row = table.insertRow();
             row.id = `available-booking-row-${availableOrders.booking_id}`;
-            row.innerHTML = `
-                <td>${availableOrders.booking_id}</td>
-                <td>${availableOrders.pickup_location}</td>
-                <td>${availableOrders.dropoff_location}</td>
-                <td>${availableOrders.distance} Km</td>
-                <td>₹${availableOrders.estimated_cost}</td>
-                <td>
-                    <img src="${availableOrders.vehicle_type_url}" alt="Vehicle Icon" class="vehicle-icon">
-                </td>
-                <td>
-                    <button class="accept-button" onclick="acceptBooking(${availableOrders.booking_id})">Accept</button>
-                </td>
-                <td>
-                    <button class="reject-button" onclick="rejectBooking(${availableOrders.booking_id})">Reject</button>
-                </td>
-            `;
+
+            let rowHtml = '';
+
+            rowHtml += `<td>${availableOrders.booking_id || ''}</td>`;
+            rowHtml += `<td>${availableOrders.pickup_location || ''}</td>`;
+            rowHtml += `<td>${availableOrders.dropoff_location || ''}</td>`;
+            rowHtml += `<td>${availableOrders.distance ? availableOrders.distance + ' Km' : ''}</td>`;
+            rowHtml += `<td>${availableOrders.estimated_cost ? '₹' + availableOrders.estimated_cost : ''}</td>`;
+            
+            if (availableOrders.vehicle_type_url) {
+                rowHtml += `<td><img src="${availableOrders.vehicle_type_url}" alt="Vehicle Icon" class="vehicle-icon"></td>`;
+            } else {
+                rowHtml += '<td></td>';
+            }
+            
+            if (availableOrders.booking_id) {
+                rowHtml += `<td><button class="accept-button" onclick="acceptBooking(${availableOrders.booking_id})">Accept</button></td>`;
+                rowHtml += `<td><button class="reject-button" onclick="rejectBooking(${availableOrders.booking_id})">Reject</button></td>`;
+            } else {
+                // placeholder for no data
+                rowHtml += '<td></td><td></td>'; 
+            }
+
+            row.innerHTML = rowHtml;
+
             addedBookingIds.add(availableOrders.booking_id);
-        }        
+        }
     }
 }
 
@@ -278,20 +316,21 @@ function updatePastOrdersTable() {
                 <td>${order.id}</td>
                 <td>${readableTime}</td>
                 <td>
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.pickup_location)}" target="_blank">${order.pickup_location}</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.pickup_location)}" target="_blank" style="color: var(--text-color);">${order.pickup_location}</a>
                 </td>
                 <td>
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.dropoff_location)}" target="_blank">${order.dropoff_location}</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.dropoff_location)}" target="_blank" style="color: var(--text-color);">${order.dropoff_location}</a>
                 </td>
                 <td>${fareWithSymbol}</td>
             `;
+
         });
     }
 }
 
 function toggleAvailability() {
     fetch(`${API_BASE_URL}/driver/toggle-availability/`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
@@ -323,7 +362,7 @@ function acceptBooking(bookingId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast(data.data.message, `Request accepted for booking ${bookingId}`);
+            showToast(`Request accepted for booking ${bookingId}`, 'success');
 
             const row = document.getElementById(`available-booking-row-${bookingId}`);
             if (row) {
@@ -336,7 +375,7 @@ function acceptBooking(bookingId) {
             // currentOrders.push(data.data.booking);
             // updateCurrentOrdersTable();
         } else {
-            showToast(data.error.details, `Error acepting booking: ${data.error.details}`);
+            showToast(`Error acepting booking: ${data.error.details}`, 'error');
         }
     })
     .catch(error => {
@@ -390,8 +429,7 @@ function validateOTP(bookingId) {
         .then(data => {
             if (data.success) {
                 showToast(data.data.message, 'success');
-                completeRide(bookingId);
-                updateCurrentOrdersTable();
+                // updateCurrentOrdersTable();
             } else {
                 showToast(data.error.details, 'error');
             }
@@ -416,7 +454,12 @@ function completeRide(bookingId) {
     .then(data => {
         if (data.success) {
             showToast(data.data.message, 'success');
-            updateCurrentOrdersTable();
+
+            const rowToRemove = document.getElementById(`available-booking-row-${bookingId}`);
+            if (rowToRemove) {
+                rowToRemove.remove();
+            }
+
             fetchPastOrders();
         } else {
             showToast(data.error.details, 'error');
@@ -443,7 +486,10 @@ function cancelBooking(bookingId) {
         .then(data => {
             if (data.success) {
                 showToast(data.data.message, 'success');
-                updateCurrentOrdersTable();
+                const rowToRemove = document.getElementById(`current-booking-row-${bookingId}`);
+                if (rowToRemove) {
+                    rowToRemove.remove();
+                }
             } else {
                 showToast(data.error.details, 'error');
             }
@@ -465,17 +511,15 @@ async function fetchAvailableOrders() {
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
-
-                if (data.status !== "cancelled") {             
-                    const emptyRow = document.querySelector(`.no-available-bookings`);
-                    if (emptyRow) {
-                        emptyRow.remove();
-                    }
-
-                    availableOrders = data;
-                    console.log('Available orders:', availableOrders);  
-                    updateAvailableOrdersTable();
-                }
+            console.log(data.status);
+        
+            const emptyRow = document.querySelector(`.no-available-bookings`);
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+    
+            console.log('Available orders:', data);  
+            updateAvailableOrdersTable(data);
         };
 
         socket.onerror = function(error) {
@@ -506,9 +550,8 @@ async function fetchCurrentOrders() {
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
-                currentOrders = data;
-                console.log('Current orders:', currentOrders); 
-                updateCurrentOrdersTable();
+            console.log('Current orders:', data);
+            updateCurrentOrdersTable(data);
         };
 
         socket.onerror = function(error) {
@@ -550,113 +593,6 @@ async function fetchPastOrders() {
     }
 }
 
-function initializeWebSockets() {
-
-    driverAvailableBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${token}`);
-    
-    driverAvailableBookingsWebSocket.onopen = function(e) {
-        console.log("[open] Driver Available Bookings WebSocket connection established");
-    };
-
-    driverAvailableBookingsWebSocket.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        handleDriverAvailableBookingsWebSocketMessage(data);
-    };
-
-    driverAvailableBookingsWebSocket.onclose = function(event) {
-        if (event.wasClean) {
-            console.log(`[close] Driver Available Bookings WebSocket connection closed cleanly, code=${event.code} reason=${event.reason}`);
-        } else {
-            console.log('[close] Driver Available Bookings WebSocket connection died');
-        }
-    };
-
-    driverAvailableBookingsWebSocket.onerror = function(error) {
-        console.log(`[error] Driver Available Bookings WebSocket error: ${error.message}`);
-    };
-
-    driverConfirmedBookingsWebSocket = new WebSocket(`ws://149.102.149.102:8000/driver/ws/available_bookings/?token=${token}`);
-    
-    driverConfirmedBookingsWebSocket.onopen = function(e) {
-        console.log("[open] Driver Confirmed Bookings WebSocket connection established");
-    };
-
-    driverConfirmedBookingsWebSocket.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        handleDriverConfirmedBookingsWebSocketMessage(data);
-    };
-
-    driverConfirmedBookingsWebSocket.onclose = function(event) {
-        if (event.wasClean) {
-            console.log(`[close] Driver Confirmed Bookings WebSocket connection closed cleanly, code=${event.code} reason=${event.reason}`);
-        } else {
-            console.log('[close] Driver Confirmed Bookings WebSocket connection died');
-        }
-    };
-
-    driverConfirmedBookingsWebSocket.onerror = function(error) {
-        console.log(`[error] Driver Confirmed Bookings WebSocket error: ${error.message}`);
-    };
-}
-
-function handleUserWebSocketMessage(data) {
-    switch (data.type) {
-        case 'booking_status_update':
-            updateBookingStatus(data.message);
-            break;
-        case 'send_otp_update':
-            updateOTP(data);
-            break;
-        case 'location_update':
-            updateDriverLocation(data);
-            break;
-        default:
-            console.log('Unknown message type:', data.type);
-    }
-}
-
-function handleDriverAvailableBookingsWebSocketMessage(data) {
-    if (data.type === 'available_booking_update') {
-        updateAvailableBookings(data.message);
-    } else {
-        console.log('Unknown message type:', data.type);
-    }
-}
-
-function handleDriverConfirmedBookingsWebSocketMessage(data) {
-    if (data.type === 'booking_status_update') {
-        updateDriverBookingStatus(data.message);
-    } else {
-        console.log('Unknown message type:', data.type);
-    }
-}
-
-function updateBookingStatus(message) {
-    console.log('Booking status updated:', message);
-    showToast(`Booking ${message.booking_id} status: ${message.status}`, 'info');
-    updateCurrentOrdersTable();
-}
-
-function updateOTP(data) {
-    console.log('OTP updated:', data);
-    showToast(`New OTP for booking ${data.booking_id}: ${data.otp}`, 'info');
-}
-
-function updateDriverLocation(data) {
-    console.log('Driver location updated:', data);
-    // has to be implemented
-}
-
-function updateAvailableBookings(message) {
-    console.log('Available booking update:', message);
-    fetchAvailableOrders();
-}
-
-function updateDriverBookingStatus(message) {
-    console.log('Driver booking status update:', message);
-    updateCurrentOrdersTable();
-}
-
 document.getElementById('refreshPastOrders').addEventListener('click', fetchPastOrders);
 
 document.getElementById('logoutButton').addEventListener('click', () => {
@@ -665,6 +601,8 @@ document.getElementById('logoutButton').addEventListener('click', () => {
     localStorage.removeItem('driverId');
     window.location.href = 'index.html';
 });
+
+document.getElementById('availabilityToggle').addEventListener('click', toggleAvailability);
 
 document.addEventListener('DOMContentLoaded', function() {
     fetchCurrentOrders();

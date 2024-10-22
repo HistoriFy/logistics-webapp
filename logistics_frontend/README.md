@@ -7,7 +7,6 @@ This folder contains the frontend code for the Logistics project.
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Notes](#notes)
 
 ## Features
 
@@ -29,7 +28,3 @@ cd logistics_frontend
 ## Usage
 
 Server starts from index.html file.
-
-## Notes
-
-- driver dashboard still requires some finishing touches

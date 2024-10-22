@@ -1,4 +1,3 @@
-<!-- INCOMPLETE DUE TO HEALTH ISSUES -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +10,14 @@
     <div class="container">
         <div class="header">
             <h1>Logistics Driver Dashboard</h1>
-            <div>
+            <div class="header-controls">
+                <div class="availability-container">
+                    <span class="availability-label">Available:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="availabilityToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <button class="dark-mode-toggle" id="darkModeToggle">🌓</button>
                 <button class="logout-button" id="logoutButton">Logout</button>
             </div>
@@ -97,6 +103,7 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src = "script/driver.js"></script>
+    <script src="script/driver.js"></script>
+
 </body>
 </html>
