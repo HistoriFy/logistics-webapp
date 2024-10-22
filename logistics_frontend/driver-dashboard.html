@@ -18,7 +18,7 @@
         </div>
 
         <div class="simulate-container">
-            <span class="simulate-label">Simulate:</span>
+            <span class="simulate-label">Simulate GPS Movement:</span>
             <label class="switch">
                 <input type="checkbox" id="simulateToggle" checked>
                 <span class="slider"></span>
@@ -32,14 +32,19 @@
                 <thead>
                     <tr>
                         <th>Order ID</th>
+                        <th>Status</th>
+                        <th>Phone</th>
                         <th>Pickup</th>
                         <th>Delivery</th>
-                        <th>Status</th>
+                        <th>Route</th>
+                        <th>OTP</th>
+                        <th>Complete</th>
+                        <th>Cancel</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="4" class="no-bookings">No current bookings</td>
+                        <td colspan="9" class="no-current-bookings">No current bookings</td>
                     </tr>
                 </tbody>
             </table>
@@ -51,34 +56,38 @@
                 <thead>
                     <tr>
                         <th>Order ID</th>
-                        <th>Pickup</th>
-                        <th>Delivery</th>
-                        <th>Action</th>
+                        <th>Pickup Location</th>
+                        <th>Delivery Location</th>
+                        <th>Distance</th>
+                        <th>Fare</th>
+                        <th>Type</th>
+                        <th>Accept?</th>
+                        <th>Reject?</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="4" class="no-bookings">No available bookings</td>
+                        <td colspan="8" class="no-available-bookings">No available bookings</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <div class="card">
-            <h2>Past Orders</h2>
+            <h2>Completed Past Orders</h2>
             <table id="pastOrdersTable">
                 <thead>
                     <tr>
                         <th>Order ID</th>
-                        <th>Date</th>
+                        <th>Booking Date</th>
                         <th>Pickup</th>
                         <th>Delivery</th>
-                        <th>Status</th>
+                        <th>Fare</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="5" class="no-bookings">No past bookings</td>
+                        <td colspan="5" class="no-past-bookings">No past bookings</td>
                     </tr>
                 </tbody>
             </table>

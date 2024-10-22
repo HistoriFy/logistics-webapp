@@ -29,7 +29,7 @@ class SimulationStatus(models.Model):
         simulation_status (bool): A boolean field indicating the status of the simulation. 
                                   Defaults to False.
     """
-    simulation_status = models.BooleanField(default=False)
+    simulation_status = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.simulation_status)

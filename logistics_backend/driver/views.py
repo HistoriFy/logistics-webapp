@@ -138,8 +138,13 @@ class RejectBookingView(APIView):
         try:
             booking = Booking.objects.get(id=booking_id)
             driver = request.user
+            
+            if SimulationStatus.objects.first().simulation_status:
+                driver.current_latitude = None
+                driver.current_longitude = None
 
             driver.available_bookings.remove(booking)
+            driver.save()
 
             return ({"message": "Booking rejected successfully."}, 200)
         except Booking.DoesNotExist:

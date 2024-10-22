@@ -12,26 +12,26 @@ async function fetchPastOrders() {
         if (data.success) {
             const pastOrderTable = document.getElementById('pastOrderTable').getElementsByTagName('tbody')[0];
             pastOrderTable.innerHTML = '';
-            // Store only the minimal data you need for the table view
             data.data.forEach(order => {
-                pastOrdersData[order.booking_id] = order; // Store full order details
-                const orderDate = new Date(order.created_at);
-                const formattedDate = new Intl.DateTimeFormat('en-US', {
+                pastOrdersData[order.booking_id] = order;
+                const readableTime = new Date(order.created_at).toLocaleString('en-US', {
                     year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit',
-                    timeZoneName: 'short'
-                }).format(orderDate);
+                    hour12: true
+                });
+
+                const estimatedCostWithSymbol = `₹${order.fare}`;
 
                 const row = pastOrderTable.insertRow();
                 row.innerHTML = `
                     <td>${order.booking_id}</td>
-                    <td>${formattedDate}</td>
+                    <td>${readableTime}</td>
                     <td>${order.status}</td>
-                    <td>${order.estimated_cost} INR</td>
+                    <td>${estimatedCostWithSymbol}</td>
                     <td><button onclick="viewPastOrderDetails(${order.booking_id})">View Details</button></td>
                 `;
             });

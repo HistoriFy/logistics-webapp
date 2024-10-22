@@ -16,10 +16,12 @@ from driver.helpers import generate_random_location
 def notify_driver_about_booking(driver, booking):
     channel_layer = get_channel_layer()
     
-    vehicle_weight_and_dimensions = VehicleType.objects.get(vehicle_type_id=booking.vehicle_type)
-    vehicle_type_url = vehicle_weight_and_dimensions.image_url
-    vehicle_weight = vehicle_weight_and_dimensions.capacity
-    vehicle_dimensions = vehicle_weight_and_dimensions.description
+    vehicle_type = booking.vehicle_type
+    
+    vehicle_type_name = vehicle_type.type_name
+    vehicle_type_url = vehicle_type.image_url
+    vehicle_weight = vehicle_type.capacity
+    vehicle_dimensions = vehicle_type.description
     
     booking_data = {
         "booking_id": booking.id,
@@ -27,7 +29,7 @@ def notify_driver_about_booking(driver, booking):
         "dropoff_location": booking.dropoff_location.address,
         "estimated_cost": float(booking.estimated_cost),
         "distance": booking.distance,
-        "vehicle_type_id": booking.vehicle_type,
+        "vehicle_type_id": vehicle_type_name,
         "vehicle_type_url": vehicle_type_url,
         "vehicle_weight": vehicle_weight,
         "vehicle_dimensions": vehicle_dimensions,

@@ -17,8 +17,11 @@ const isDarkMode = localStorage.getItem('darkMode') === 'true';
 body.classList.toggle('dark-mode', isDarkMode);
 updateDarkModeToggle(isDarkMode);
 
-let currentOrders = [];
-let availableOrders = [];
+const addedBookingIds = new Set();
+const currentBookingIds = new Set();
+
+let currentOrders;
+let availableOrders;
 let pastOrders = [];
 
 const simulateToggle = document.getElementById('simulateToggle');
@@ -173,44 +176,83 @@ function handleError(error) {
 function updateCurrentOrdersTable() {
     const table = document.getElementById('currentOrdersTable').getElementsByTagName('tbody')[0];
     table.innerHTML = '';
-    if (currentOrders.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="no-bookings">No current bookings</td></tr>';
+    if (!currentOrders || Object.keys(currentOrders).length === 0) {
+        table.innerHTML = '<tr><td colspan="8" class="no-past-bookings">No current bookings</td></tr>';
     } else {
-        currentOrders.forEach(order => {
+        if (!currentBookingIds.has(currentOrders.booking_id)) {
+            const emptyRow = document.querySelector(`.no-current-bookings`);
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+
             const row = table.insertRow();
+            row.id = `current-booking-row-${availableOrders.booking_id}`;
             row.innerHTML = `
-                <td>${order.bookin_id}</td>
-                <td>${order.pickup_location}</td>
-                <td>${order.dropoff_location}</td>
-                <td>${order.status}</td>
+                <td>${availableOrders.booking_id}</td>
+                <td>${availableOrders.status}</td>
                 <td>
-                    <button onclick="validateOTP(${order.id})">Validate OTP</button>
-                    <button onclick="completeRide(${order.id})" id="completeRideBtn">Complete Ride</button>
-                    <button onclick="cancelBooking(${order.id})">Cancel</button>
+                    <a href=tel:${availableOrders.phone}>${availableOrders.phone}</a>
+                </td>
+                <td>${availableOrders.pickup_location}</td>
+                <td>${availableOrders.dropoff_location}</td>
+                <td>
+                    <a href="https://www.google.com/maps/search/?api=1&origin=${availableOrders.pickup_location}&destination=${availableOrders.dropoff_location}" target="_blank">Navigate</a>
+                </td>
+                <td>
+                    <button class="otp-button" onclick="validateOTP(${availableOrders.booking_id})">Validate OTP</button>
+                </td>
+                <td>
+                    <button class="complete-button" onclick="completeRide(${availableOrders.id})">Complete Ride</button>
+                </td>
+                <td>
+                    <button class="cancel-button" onclick="cancelBooking(${availableOrders.id})">Cancel</button>
                 </td>
             `;
-        });
+
+            currentBookingIds.add(availableOrders.booking_id);
+        }
+        else {
+            const row = document.getElementById(`current-booking-row-${availableOrders.booking_id}`);
+            row.querySelector('td:nth-child(2)').textContent = availableOrders.status;
+        }
     }
 }
 
 function updateAvailableOrdersTable() {
     const table = document.getElementById('availableOrdersTable').getElementsByTagName('tbody')[0];
-    table.innerHTML = '';
-    if (availableOrders.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="no-bookings">No available bookings</td></tr>';
+
+    if (!availableOrders || Object.keys(availableOrders).length === 0) {
+        table.innerHTML = `<tr>
+            <td colspan="8" class="no-bookings">
+                <div class="no-bookings-container">No available bookings</div>
+            </td>
+        </tr>`;    
     } else {
-        availableOrders.forEach(order => {
+        if (!addedBookingIds.has(availableOrders.booking_id)) {
+            const emptyRow = document.querySelector(`.no-available-bookings`);
+            if (emptyRow) {
+                emptyRow.remove();
+            }
             const row = table.insertRow();
+            row.id = `available-booking-row-${availableOrders.booking_id}`;
             row.innerHTML = `
-                <td>${order.id}</td>
-                <td>${order.pickup_location}</td>
-                <td>${order.dropoff_location}</td>
+                <td>${availableOrders.booking_id}</td>
+                <td>${availableOrders.pickup_location}</td>
+                <td>${availableOrders.dropoff_location}</td>
+                <td>${availableOrders.distance} Km</td>
+                <td>₹${availableOrders.estimated_cost}</td>
                 <td>
-                    <button onclick="acceptBooking(${order.id})">Accept</button>
-                    <button onclick="rejectBooking(${order.id})">Reject</button>
+                    <img src="${availableOrders.vehicle_type_url}" alt="Vehicle Icon" class="vehicle-icon">
+                </td>
+                <td>
+                    <button class="accept-button" onclick="acceptBooking(${availableOrders.booking_id})">Accept</button>
+                </td>
+                <td>
+                    <button class="reject-button" onclick="rejectBooking(${availableOrders.booking_id})">Reject</button>
                 </td>
             `;
-        });
+            addedBookingIds.add(availableOrders.booking_id);
+        }        
     }
 }
 
@@ -218,16 +260,30 @@ function updatePastOrdersTable() {
     const table = document.getElementById('pastOrdersTable').getElementsByTagName('tbody')[0];
     table.innerHTML = '';
     if (pastOrders.length === 0) {
-        table.innerHTML = '<tr><td colspan="5" class="no-bookings">No past bookings</td></tr>';
+        table.innerHTML = '<tr><td colspan="5" class="past-no-bookings">No past bookings</td></tr>';
     } else {
         pastOrders.forEach(order => {
             const row = table.insertRow();
+            const readableTime = new Date(order.pickup_time).toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            const fareWithSymbol = `₹${order.fare}`;
             row.innerHTML = `
                 <td>${order.id}</td>
-                <td>${order.pickup_time}</td>
-                <td>${order.pickup_location}</td>
-                <td>${order.dropoff_location}</td>
-                <td>${order.fare}</td>
+                <td>${readableTime}</td>
+                <td>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.pickup_location)}" target="_blank">${order.pickup_location}</a>
+                </td>
+                <td>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.dropoff_location)}" target="_blank">${order.dropoff_location}</a>
+                </td>
+                <td>${fareWithSymbol}</td>
             `;
         });
     }
@@ -267,13 +323,20 @@ function acceptBooking(bookingId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast(data.data.message, 'success');
-            availableOrders = availableOrders.filter(order => order.id !== bookingId);
-            updateAvailableOrdersTable();            
-            currentOrders.push(data.data.booking);
-            updateCurrentOrdersTable();
+            showToast(data.data.message, `Request accepted for booking ${bookingId}`);
+
+            const row = document.getElementById(`available-booking-row-${bookingId}`);
+            if (row) {
+                row.remove();
+            }
+
+            // availableOrders = availableOrders.filter(order => order.booking_id !== bookingId);
+            // updateAvailableOrdersTable();   
+
+            // currentOrders.push(data.data.booking);
+            // updateCurrentOrdersTable();
         } else {
-            showToast(data.error.details, 'error');
+            showToast(data.error.details, `Error acepting booking: ${data.error.details}`);
         }
     })
     .catch(error => {
@@ -295,6 +358,12 @@ function rejectBooking(bookingId) {
     .then(data => {
         if (data.success) {
             showToast(data.data.message, 'success');
+            
+            const row = document.getElementById(`available-booking-row-${bookingId}`);
+            if (row) {
+                row.remove();
+            }
+            
             fetchAvailableOrders();
         } else {
             showToast(data.error.details, 'error');
@@ -396,9 +465,17 @@ async function fetchAvailableOrders() {
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
-                availableOrders = data.data.available_orders;
-                console.log('Available orders:', availableOrders);  
-                updateAvailableOrdersTable();
+
+                if (data.status !== "cancelled") {             
+                    const emptyRow = document.querySelector(`.no-available-bookings`);
+                    if (emptyRow) {
+                        emptyRow.remove();
+                    }
+
+                    availableOrders = data;
+                    console.log('Available orders:', availableOrders);  
+                    updateAvailableOrdersTable();
+                }
         };
 
         socket.onerror = function(error) {
@@ -429,7 +506,7 @@ async function fetchCurrentOrders() {
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
-                availableOrders = data.data.available_orders;
+                currentOrders = data;
                 console.log('Current orders:', currentOrders); 
                 updateCurrentOrdersTable();
         };
@@ -440,11 +517,11 @@ async function fetchCurrentOrders() {
         };
 
         socket.onclose = function(event) {
-            if (event.wasClean) {
-                console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
-            } else {
-                console.error('WebSocket connection died');
+            console.log(`Reconnecting in 5 seconds...`);
+            setTimeout(() => {
+                fetchCurrentOrders();
             }
+            , 5000);
         };
     } catch (error) {
         showToast('Failed to establish WebSocket connection', 'error');
@@ -454,13 +531,11 @@ async function fetchCurrentOrders() {
 
 async function fetchPastOrders() {
     try {
-
         const response = await fetch(`${API_BASE_URL}/driver/bookings/past/`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
-            }
-            
+            }         
         });
         const data = await response.json();
         if (data.success) {
@@ -595,5 +670,5 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchCurrentOrders();
     fetchAvailableOrders();
     fetchPastOrders();
-    initializeWebSockets();
+    // initializeWebSockets();
 });
