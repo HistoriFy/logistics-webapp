@@ -68,6 +68,9 @@ registrationForm.addEventListener('submit', (e) => {
     const formData = new FormData(registrationForm);
     const data = Object.fromEntries(formData.entries());
 
+    // Add user_type to the data object
+    data.user_type = currentUserType;
+
     // Remove unnecessary fields based on user type
     if (!fleetToggle.classList.contains('active')) {
         delete data.company_name;
