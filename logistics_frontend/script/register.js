@@ -9,7 +9,7 @@ const passwordInput = document.getElementById('password');
 const passwordToggle = document.getElementById('passwordToggle');
 const registrationForm = document.getElementById('registrationForm');
 
-const API_BASE_URL = 'http://149.102.149.102/api/v1';
+const API_BASE_URL = 'https://18122002.xyz/api/v1';
 
 // Check for saved user preference and set initial mode
 const isDarkMode = localStorage.getItem('darkMode') === 'true';

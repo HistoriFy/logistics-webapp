@@ -1,85 +1,87 @@
 const darkModeToggle = document.getElementById('darkModeToggle');
-        const body = document.body;
-        const userToggle = document.getElementById('userToggle');
-        const fleetToggle = document.getElementById('fleetToggle');
-        const driverToggle = document.getElementById('driverToggle');
-        const passwordInput = document.getElementById('password');
-        const passwordToggle = document.getElementById('passwordToggle');
-        const loginForm = document.getElementById('loginForm');
+const body = document.body;
+const userToggle = document.getElementById('userToggle');
+const fleetToggle = document.getElementById('fleetToggle');
+const driverToggle = document.getElementById('driverToggle');
+const passwordInput = document.getElementById('password');
+const passwordToggle = document.getElementById('passwordToggle');
+const loginForm = document.getElementById('loginForm');
 
-        // Check for saved user preference and set initial mode
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        body.classList.toggle('dark-mode', isDarkMode);
-        updateDarkModeToggle(isDarkMode);
+// Check for saved user preference and set initial mode
+const isDarkMode = localStorage.getItem('darkMode') === 'true';
+body.classList.toggle('dark-mode', isDarkMode);
+updateDarkModeToggle(isDarkMode);
 
-        darkModeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            const isDark = body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDark);
-            updateDarkModeToggle(isDark);
-        });
+const API_BASE_URL = 'https://18122002.xyz/api/v1';
 
-        function updateDarkModeToggle(isDark) {
-            darkModeToggle.textContent = isDark ? '☀️' : '🌓';
-        }
+darkModeToggle.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    const isDark = body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    updateDarkModeToggle(isDark);
+});
 
-        function setActiveToggle(activeToggle) {
-            [userToggle, fleetToggle, driverToggle].forEach(toggle => {
-                toggle.classList.remove('active');
-            });
-            activeToggle.classList.add('active');
-        }
+function updateDarkModeToggle(isDark) {
+    darkModeToggle.textContent = isDark ? '☀️' : '🌓';
+}
 
-        userToggle.addEventListener('click', () => setActiveToggle(userToggle));
-        fleetToggle.addEventListener('click', () => setActiveToggle(fleetToggle));
-        driverToggle.addEventListener('click', () => setActiveToggle(driverToggle));
+function setActiveToggle(activeToggle) {
+    [userToggle, fleetToggle, driverToggle].forEach(toggle => {
+        toggle.classList.remove('active');
+    });
+    activeToggle.classList.add('active');
+}
 
-        passwordToggle.addEventListener('click', () => {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            passwordToggle.textContent = type === 'password' ? '👁️' : '🔒';
-        });
+userToggle.addEventListener('click', () => setActiveToggle(userToggle));
+fleetToggle.addEventListener('click', () => setActiveToggle(fleetToggle));
+driverToggle.addEventListener('click', () => setActiveToggle(driverToggle));
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(loginForm);
-            const inputData = Object.fromEntries(formData.entries());
+passwordToggle.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    passwordToggle.textContent = type === 'password' ? '👁️' : '🔒';
+});
 
-            // Add user type to the data
-            if (userToggle.classList.contains('active')) {
-                inputData.user_type = 'user';
-            } else if (fleetToggle.classList.contains('active')) {
-                inputData.user_type = 'fleet_owner';
-            } else if (driverToggle.classList.contains('active')) {
-                inputData.user_type = 'driver';
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(loginForm);
+    const inputData = Object.fromEntries(formData.entries());
+
+    // Add user type to the data
+    if (userToggle.classList.contains('active')) {
+        inputData.user_type = 'user';
+    } else if (fleetToggle.classList.contains('active')) {
+        inputData.user_type = 'fleet_owner';
+    } else if (driverToggle.classList.contains('active')) {
+        inputData.user_type = 'driver';
+    }
+    
+    fetch(`${API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inputData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Login successful');
+
+            if (inputData.user_type === 'user') {
+                localStorage.setItem('userToken', data.data.token);
+                window.location.href = 'user-dashboard.html'; // Change to your user dashboard
+            } else if (inputData.user_type === 'fleet_owner') {
+                localStorage.setItem('fleetOwnerToken', data.data.token);
+                window.location.href = 'fleet-owner-dashboard.html'; // Change to your fleet owner dashboard
+            } else if (inputData.user_type === 'driver') {
+                localStorage.setItem('driverToken', data.data.token);
+                window.location.href = 'driver-dashboard.html'; // Change to your driver dashboard
             }
-            
-            fetch('http://18122002.xyz/api/v1/auth/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(inputData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Login successful');
 
-                    if (inputData.user_type === 'user') {
-                        localStorage.setItem('userToken', data.data.token);
-                        window.location.href = 'user-dashboard.html'; // Change to your user dashboard
-                    } else if (inputData.user_type === 'fleet_owner') {
-                        localStorage.setItem('fleetOwnerToken', data.data.token);
-                        window.location.href = 'fleet-owner-dashboard.html'; // Change to your fleet owner dashboard
-                    } else if (inputData.user_type === 'driver') {
-                        localStorage.setItem('driverToken', data.data.token);
-                        window.location.href = 'driver-dashboard.html'; // Change to your driver dashboard
-                    }
-
-                } else {
-                    alert(`Error: ${data.error.message}: ${data.error.details}`);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
+        } else {
+            alert(`Error: ${data.error.message}: ${data.error.details}`);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
