@@ -69,10 +69,10 @@ registrationForm.addEventListener('submit', (e) => {
     const data = Object.fromEntries(formData.entries());
 
     // Remove unnecessary fields based on user type
-    if (currentUserType !== 'fleet_owner') {
+    if (!fleetToggle.classList.contains('active')) {
         delete data.company_name;
     }
-    if (currentUserType !== 'driver') {
+    if (!driverToggle.classList.contains('active')) {
         delete data.license_number;
     }
 
